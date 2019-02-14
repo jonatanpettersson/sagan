@@ -2,7 +2,7 @@ package com.apptinus.board;
 
 public class Move {
   /*
-  0000000000000000[00|00|000000|000000
+  0000000000000000|00|00|000000|000000
   First 16 bits not used for now
   Promotion type (0 - Knight, 1 - Bishop, 2 - Rook, 3 - Queen)
   Special move (0 - None, 1 - Promotion, 2 - En passant, 3 - Castle
