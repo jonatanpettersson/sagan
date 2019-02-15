@@ -1,7 +1,33 @@
 package com.apptinus.sagan.board;
 
+import static com.apptinus.sagan.board.Move.A1;
+import static com.apptinus.sagan.board.Move.A8;
+import static com.apptinus.sagan.board.Move.C1;
+import static com.apptinus.sagan.board.Move.C8;
+import static com.apptinus.sagan.board.Move.D1;
+import static com.apptinus.sagan.board.Move.D8;
+import static com.apptinus.sagan.board.Move.F1;
+import static com.apptinus.sagan.board.Move.F8;
+import static com.apptinus.sagan.board.Move.G1;
+import static com.apptinus.sagan.board.Move.H1;
+import static com.apptinus.sagan.board.Move.H8;
+import static com.apptinus.sagan.board.Move.N;
+import static com.apptinus.sagan.board.Move.PROMO_B;
+import static com.apptinus.sagan.board.Move.PROMO_N;
+import static com.apptinus.sagan.board.Move.PROMO_Q;
+import static com.apptinus.sagan.board.Move.PROMO_R;
+import static com.apptinus.sagan.board.Move.S;
+import static com.apptinus.sagan.board.Move.SPECIAL_CASTLE;
+import static com.apptinus.sagan.board.Move.SPECIAL_EP;
+import static com.apptinus.sagan.board.Move.SPECIAL_PROMO;
+import static com.apptinus.sagan.board.Move.dir;
+import static com.apptinus.sagan.board.Move.from;
+import static com.apptinus.sagan.board.Move.promotion;
+import static com.apptinus.sagan.board.Move.special;
+import static com.apptinus.sagan.board.Move.to;
 import static com.apptinus.sagan.util.Bitops.isSet;
 import static com.apptinus.sagan.util.Bitops.set;
+import static com.apptinus.sagan.util.Bitops.unset;
 
 import java.util.Collections;
 
@@ -24,18 +50,128 @@ public class Board {
 
   public long[] pieces = new long[12];
 
+  public int[] captureHistory = new int[1024];
+
   public long wPieces;
   public long bPieces;
   public long allPieces;
 
-  public int wCastle; // 0 no castle, 1 short, 2 long, 3 both
-  public int bCastle; // 0 no castle, 1 short, 2 long, 3 both
+  public long wCastle; // 0 no castle, 1 short, 2 long, 3 both
+  public long bCastle; // 0 no castle, 1 short, 2 long, 3 both
   public int toMove; // 0 white, 1 black
   public int ep; // Available en passant square
   public int fPly; // Half moves since capture (fifty moves counter)
   public int ply; // Half moves since start of game
 
-  public void make(int move) {}
+  public void make(int move) {
+    int from = from(move);
+    int to = to(move);
+    int special = special(move);
+    int piece = board[from];
+    int moving = piece <= 5 ? 0 : 1;
+
+    toMove = (toMove == 0) ? 1 : 0;
+    board[from] = EE;
+    unset(pieces[piece], from);
+
+    int toPiece = piece;
+    if (special == SPECIAL_PROMO) {
+      switch (promotion(move)) {
+        case PROMO_N:
+          toPiece = moving == 0 ? WN : BN;
+          break;
+        case PROMO_B:
+          toPiece = moving == 0 ? WB : BB;
+          break;
+        case PROMO_R:
+          toPiece = moving == 0 ? WR : BR;
+          break;
+        case PROMO_Q:
+          toPiece = moving == 0 ? WQ : BQ;
+          break;
+      }
+    }
+
+    int captureSquare = to;
+    int capturedPiece = board[captureSquare];
+
+    if (special == SPECIAL_EP) {
+      captureSquare = moving == 0 ? dir(to, S) : dir(to, N);
+      capturedPiece = board[captureSquare];
+      unset(pieces[board[captureSquare]], captureSquare);
+      board[captureSquare] = EE;
+    }
+
+    board[to] = toPiece;
+    set(pieces[toPiece], to);
+
+    if (capturedPiece != EE) {
+      captureHistory[ply] = capturedPiece;
+    }
+
+    ply++;
+
+    if (capturedPiece != EE || piece == WP || piece == BP) {
+      fPly = 0;
+    } else {
+      fPly++;
+    }
+
+    if (special == SPECIAL_CASTLE) {
+      int rookFromSquare = H8;
+      int rookToSquare = F8;
+      int castlingRook = BR;
+      switch (to) {
+        case C1:
+          rookFromSquare = A1;
+          rookToSquare = D1;
+          castlingRook = WR;
+          break;
+        case G1:
+          rookFromSquare = H1;
+          rookToSquare = F1;
+          castlingRook = WR;
+          break;
+        case C8:
+          rookFromSquare = A8;
+          rookToSquare = D8;
+          castlingRook = BR;
+          break;
+      }
+
+      board[rookToSquare] = castlingRook;
+      set(pieces[castlingRook], rookToSquare);
+      board[rookFromSquare] = EE;
+      unset(pieces[castlingRook], rookFromSquare);
+    }
+
+    if (wCastle != 0) {
+      if (piece == WK) {
+        wCastle = 0;
+      } else if (isSet(wCastle, 0) && (from == H1 || to == H1)) {
+        wCastle = unset(wCastle, 0);
+      } else if (isSet(wCastle, 1) && (from == A1 || to == A1)) {
+        wCastle = unset(wCastle, 1);
+      }
+    }
+    if (bCastle != 0) {
+      if (piece == BK) {
+        bCastle = 0;
+      } else if (isSet(bCastle, 0) && (from == H8 || to == H8)) {
+        bCastle = unset(bCastle, 0);
+      } else if (isSet(bCastle, 1) && (from == A8 || to == A8)) {
+        wCastle = unset(bCastle, 1);
+      }
+    }
+
+    if (piece == WP && to - from == N + N) {
+      ep = to + S;
+    } else if (piece == BP && from - to == N + N) {
+      ep = to + N;
+    } else {
+      ep = -1;
+    }
+  }
 
   public void unmake(int move) {}
 
@@ -43,6 +179,14 @@ public class Board {
     // Note: Unpredictable results if fen is malformed (no sanity checking at all)
 
     clear();
+
+    fen = fen.trim();
+
+    // If move counts are missing, add them first
+    if (fen.split(" ").length == 4) {
+      fen = fen + " 0 1";
+    }
+
     String[] fs = fen.split(" ");
 
     toMove = fs[1].equals("w") ? 0 : 1;
@@ -145,27 +289,19 @@ public class Board {
     String fullMoves = Integer.toString(ply / 2 + 1);
     String halfSinceCapture = Integer.toString(fPly);
     String castle = "";
-    switch (wCastle) {
-      case 1:
-        castle += "K";
-        break;
-      case 2:
-        castle += "Q";
-        break;
-      case 3:
-        castle += "KQ";
-        break;
+    if (wCastle == 1) {
+      castle += "K";
+    } else if (wCastle == 2) {
+      castle += "Q";
+    } else if (wCastle == 3) {
+      castle += "KQ";
     }
-    switch (bCastle) {
-      case 1:
-        castle += "k";
-        break;
-      case 2:
-        castle += "q";
-        break;
-      case 3:
-        castle += "kq";
-        break;
+    if (bCastle == 1) {
+      castle += "k";
+    } else if (bCastle == 2) {
+      castle += "q";
+    } else if (bCastle == 3) {
+      castle += "kq";
     }
     castle = castle.equals("") ? "-" : castle;
 
@@ -231,12 +367,18 @@ public class Board {
       }
     }
 
+    if (consecutive > 0) {
+      piecesString += consecutive;
+    }
+
     return String.join(
         " ", piecesString, toMoveString, castle, epString, halfSinceCapture, fullMoves);
   }
 
   public void clear() {
     pieces = new long[12];
+
+    captureHistory = new int[1024];
 
     wPieces = 0L;
     bPieces = 0L;

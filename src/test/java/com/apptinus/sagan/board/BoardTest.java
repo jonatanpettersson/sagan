@@ -15,6 +15,81 @@ public class BoardTest {
   // 8888888877777777666666665555555544444444333333332222222211111111
 
   @Test
+  public void testMakeMove() {
+    String fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+    Board board = new Board();
+    board.setFen(fen);
+
+    board.make(Move.m(Move.E2, Move.E4, 0, 0));
+    assertEquals("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1", board.getFen());
+    board.make(Move.m(Move.E7, Move.E5, 0, 0));
+    assertEquals("rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2", board.getFen());
+    board.make(Move.m(Move.G1, Move.F3, 0, 0));
+    assertEquals("rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2", board.getFen());
+
+    board.setFen("rnbqk1nr/ppp1bppp/3p4/4p3/4P3/5N2/PPPPBPPP/RNBQK2R w KQkq -");
+    board.make(Move.m(Move.E1, Move.G1, Move.SPECIAL_CASTLE, 0));
+    assertEquals("rnbqk1nr/ppp1bppp/3p4/4p3/4P3/5N2/PPPPBPPP/RNBQ1RK1 b kq - 1 1", board.getFen());
+    board.setFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R3KBNR w KQkq -");
+    board.make(Move.m(Move.E1, Move.C1, Move.SPECIAL_CASTLE, 0));
+    assertEquals("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/2KR1BNR b kq - 1 1", board.getFen());
+    board.setFen("r3kbnr/pppppppp/8/8/8/8/PPPPPPPP/2KR1BNR b kq -");
+    board.make(Move.m(Move.E8, Move.C8, Move.SPECIAL_CASTLE, 0));
+    assertEquals("2kr1bnr/pppppppp/8/8/8/8/PPPPPPPP/2KR1BNR w - - 1 2", board.getFen());
+    board.setFen("r3k2r/pppppppp/8/8/8/8/PPPPPPPP/2KR1BNR b kq -");
+    board.make(Move.m(Move.E8, Move.G8, Move.SPECIAL_CASTLE, 0));
+    assertEquals("r4rk1/pppppppp/8/8/8/8/PPPPPPPP/2KR1BNR w - - 1 2", board.getFen());
+
+    board.setFen("4k3/8/8/8/Pp6/8/8/4K3 b a3 -");
+    board.make(Move.m(Move.B4, Move.A3, Move.SPECIAL_EP, 0));
+    assertEquals("4k3/8/8/8/8/p7/8/4K3 w - - 0 2", board.getFen());
+    board.setFen("4k3/8/8/6Pp/8/8/8/4K3 w - h6");
+    board.make(Move.m(Move.G5, Move.H6, Move.SPECIAL_EP, 0));
+    assertEquals("4k3/8/7P/8/8/8/8/4K3 b - - 0 1", board.getFen());
+
+    board.setFen("4k3/7P/8/8/8/8/8/4K3 w - -");
+    board.make(Move.m(Move.H7, Move.H8, Move.SPECIAL_PROMO, Move.PROMO_N));
+    assertEquals("4k2N/8/8/8/8/8/8/4K3 b - - 0 1", board.getFen());
+    board.setFen("4k3/7P/8/8/8/8/8/4K3 w - -");
+    board.make(Move.m(Move.H7, Move.H8, Move.SPECIAL_PROMO, Move.PROMO_B));
+    assertEquals("4k2B/8/8/8/8/8/8/4K3 b - - 0 1", board.getFen());
+    board.setFen("4k3/7P/8/8/8/8/8/4K3 w - -");
+    board.make(Move.m(Move.H7, Move.H8, Move.SPECIAL_PROMO, Move.PROMO_R));
+    assertEquals("4k2R/8/8/8/8/8/8/4K3 b - - 0 1", board.getFen());
+    board.setFen("4k3/7P/8/8/8/8/8/4K3 w - -");
+    board.make(Move.m(Move.H7, Move.H8, Move.SPECIAL_PROMO, Move.PROMO_Q));
+    assertEquals("4k2Q/8/8/8/8/8/8/4K3 b - - 0 1", board.getFen());
+
+    board.setFen("4k3/8/8/8/8/8/p7/4K3 b - -");
+    board.make(Move.m(Move.A2, Move.A1, Move.SPECIAL_PROMO, Move.PROMO_N));
+    assertEquals("4k3/8/8/8/8/8/8/n3K3 w - - 0 2", board.getFen());
+    board.setFen("4k3/8/8/8/8/8/p7/4K3 b - -");
+    board.make(Move.m(Move.A2, Move.A1, Move.SPECIAL_PROMO, Move.PROMO_B));
+    assertEquals("4k3/8/8/8/8/8/8/b3K3 w - - 0 2", board.getFen());
+    board.setFen("4k3/8/8/8/8/8/p7/4K3 b - -");
+    board.make(Move.m(Move.A2, Move.A1, Move.SPECIAL_PROMO, Move.PROMO_R));
+    assertEquals("4k3/8/8/8/8/8/8/r3K3 w - - 0 2", board.getFen());
+    board.setFen("4k3/8/8/8/8/8/p7/4K3 b - -");
+    board.make(Move.m(Move.A2, Move.A1, Move.SPECIAL_PROMO, Move.PROMO_Q));
+    assertEquals("4k3/8/8/8/8/8/8/q3K3 w - - 0 2", board.getFen());
+
+    board.setFen("r3k3/1P6/8/8/8/8/8/4K3 w - -");
+    board.make(Move.m(Move.B7, Move.A8, Move.SPECIAL_PROMO, Move.PROMO_N));
+    assertEquals("N3k3/8/8/8/8/8/8/4K3 b - - 0 1", board.getFen());
+    board.setFen("2r1k3/1P6/8/8/8/8/8/4K3 w - -");
+    board.make(Move.m(Move.B7, Move.C8, Move.SPECIAL_PROMO, Move.PROMO_B));
+    assertEquals("2B1k3/8/8/8/8/8/8/4K3 b - - 0 1", board.getFen());
+
+    board.setFen("4k3/8/8/8/8/8/6p1/4K2R b - -");
+    board.make(Move.m(Move.G2, Move.H1, Move.SPECIAL_PROMO, Move.PROMO_R));
+    assertEquals("4k3/8/8/8/8/8/8/4K2r w - - 0 2", board.getFen());
+    board.setFen("4k3/8/8/8/8/8/6p1/4KR2 b - -");
+    board.make(Move.m(Move.G2, Move.F1, Move.SPECIAL_PROMO, Move.PROMO_Q));
+    assertEquals("4k3/8/8/8/8/8/8/4Kq2 w - - 0 2", board.getFen());
+  }
+
+  @Test
   public void testFenInAndOut1() {
     String fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -188,6 +263,12 @@ public class BoardTest {
 
     board.setFen("rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2");
     assertEquals("rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2", board.getFen());
+
+    board.setFen("rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB2 b KQkq - 1 2");
+    assertEquals("rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB2 b KQkq - 1 2", board.getFen());
+
+    board.setFen("1nbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB2 b KQkq - 1 2");
+    assertEquals("1nbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB2 b KQkq - 1 2", board.getFen());
   }
 
   @Test
