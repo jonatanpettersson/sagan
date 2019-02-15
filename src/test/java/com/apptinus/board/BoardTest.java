@@ -8,8 +8,12 @@ import org.junit.Test;
 
 public class BoardTest {
 
+  // Bitboard reference
+  // hgfedcbahgfedcbahgfedcbahgfedcbahgfedcbahgfedcbahgfedcbahgfedcba
+  // 8888888877777777666666665555555544444444333333332222222211111111
+
   @Test
-  public void testFenInAndOut() {
+  public void testFenInAndOut1() {
     String fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
     Board board = new Board();
@@ -43,6 +47,59 @@ public class BoardTest {
     assertEquals(-1, board.ep);
 
     assertEquals(fen, board.getFen());
+  }
+
+  @Test
+  public void testFenInAndOut2() {
+    String fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
+
+    Board board = new Board();
+    board.setFen(fen);
+
+    assertEquals(0b0000000000000000000000000000100000010000000000001110011100000000L, board.wP);
+    assertEquals(0b0000000000000000000000000001000000000000000001000000000000000000L, board.wN);
+    assertEquals(0b0000000000000000000000000000000000000000000000000001100000000000L, board.wB);
+    assertEquals(0b0000000000000000000000000000000000000000000000000000000010000001L, board.wR);
+    assertEquals(0b0000000000000000000000000000000000000000001000000000000000000000L, board.wQ);
+    assertEquals(0b0000000000000000000000000000000000000000000000000000000000010000L, board.wK);
+    assertEquals(0b0000000000101101010100000000000000000010100000000000000000000000L, board.bP);
+    assertEquals(0b0000000000000000001000100000000000000000000000000000000000000000L, board.bN);
+    assertEquals(0b0000000001000000000000010000000000000000000000000000000000000000L, board.bB);
+    assertEquals(0b1000000100000000000000000000000000000000000000000000000000000000L, board.bR);
+    assertEquals(0b0000000000010000000000000000000000000000000000000000000000000000L, board.bQ);
+    assertEquals(0b0001000000000000000000000000000000000000000000000000000000000000L, board.bK);
+
+    assertEquals(
+        0b0000000000000000000000000001100000010000001001001111111110010001L, board.wPieces);
+    assertEquals(
+        0b1001000101111101011100110000000000000010100000000000000000000000L, board.bPieces);
+    assertEquals(
+        0b1001000101111101011100110001100000010010101001001111111110010001L, board.allPieces);
+
+    assertEquals(0b0, board.toMove);
+    assertEquals(0b11, board.wCastle);
+    assertEquals(0b11, board.bCastle);
+    assertEquals(0, board.fPly);
+    assertEquals(0, board.ply);
+    assertEquals(-1, board.ep);
+
+    assertEquals(fen, board.getFen());
+  }
+
+  @Test
+  public void testFenInAndOut3() {
+    Board board = new Board();
+    board.setFen("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
+    assertEquals("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8", board.getFen());
+
+    board.setFen("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1");
+    assertEquals("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1", board.getFen());
+
+    board.setFen("rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2");
+    assertEquals("rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2", board.getFen());
+
+    board.setFen("rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2");
+    assertEquals("rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2", board.getFen());
   }
 
   @Test

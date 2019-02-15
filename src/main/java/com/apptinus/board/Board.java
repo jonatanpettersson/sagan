@@ -54,6 +54,11 @@ public class Board {
         continue;
       }
 
+      if (c >= '0' && c <= '9') {
+        file += c - '0';
+        continue;
+      }
+
       int square = fileAndRankToSquare(file, rank);
       switch (c) {
         case 'p':
@@ -251,5 +256,49 @@ public class Board {
     }
 
     return print;
+  }
+
+  public String prettyPrintBoard() {
+    String boardString = "";
+    for (int rank = 7 ; rank >=0; rank--) {
+      for (int file = 0; file <= 7; file++) {
+        int i = fileAndRankToSquare(file, rank);
+
+        if ((wPieces & 1L << i) != 0) {
+          if ((wP & 1L << i) != 0) {
+            boardString += "P ";
+          } else if ((wN & 1L << i) != 0) {
+            boardString += "N ";
+          } else if ((wB & 1L << i) != 0) {
+            boardString += "B ";
+          } else if ((wR & 1L << i) != 0) {
+            boardString += "R ";
+          } else if ((wQ & 1L << i) != 0) {
+            boardString += "Q ";
+          } else if ((wK & 1L << i) != 0) {
+            boardString += "K ";
+          }
+        } else if ((bPieces & 1L << i) != 0) {
+          if ((bP & 1L << i) != 0) {
+            boardString += "p ";
+          } else if ((bN & 1L << i) != 0) {
+            boardString += "n ";
+          } else if ((bB & 1L << i) != 0) {
+            boardString += "b ";
+          } else if ((bR & 1L << i) != 0) {
+            boardString += "r ";
+          } else if ((bQ & 1L << i) != 0) {
+            boardString += "q ";
+          } else if ((bK & 1L << i) != 0) {
+            boardString += "k ";
+          }
+        } else {
+          boardString += ". ";
+        }
+      }
+      boardString += "\n";
+    }
+
+    return boardString;
   }
 }
