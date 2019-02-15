@@ -47,6 +47,16 @@ public class BoardTest {
     assertEquals(-1, board.ep);
 
     assertEquals(fen, board.getFen());
+    assertEquals(
+        "r n b q k b n r \n"
+            + "p p p p p p p p \n"
+            + ". . . . . . . . \n"
+            + ". . . . . . . . \n"
+            + ". . . . . . . . \n"
+            + ". . . . . . . . \n"
+            + "P P P P P P P P \n"
+            + "R N B Q K B N R \n",
+        board.prettyPrintBoard());
   }
 
   @Test
@@ -84,6 +94,16 @@ public class BoardTest {
     assertEquals(-1, board.ep);
 
     assertEquals(fen, board.getFen());
+    assertEquals(
+        "r . . . k . . r \n"
+            + "p . p p q p b . \n"
+            + "b n . . p n p . \n"
+            + ". . . P N . . . \n"
+            + ". p . . P . . . \n"
+            + ". . N . . Q . p \n"
+            + "P P P B B P P P \n"
+            + "R . . . K . . R \n",
+        board.prettyPrintBoard());
   }
 
   @Test

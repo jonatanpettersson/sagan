@@ -1,5 +1,8 @@
 package com.apptinus.board;
 
+import static com.apptinus.util.Bitops.*;
+
+import com.apptinus.util.Bitops;
 import java.util.Collections;
 
 public class Board {
@@ -62,40 +65,40 @@ public class Board {
       int square = fileAndRankToSquare(file, rank);
       switch (c) {
         case 'p':
-          bP |= 1L << square;
+          bP = add(bP, square);
           break;
         case 'n':
-          bN |= 1L << square;
+          bN = add(bN, square);
           break;
         case 'b':
-          bB |= 1L << square;
+          bB = add(bB, square);
           break;
         case 'r':
-          bR |= 1L << square;
+          bR = add(bR, square);
           break;
         case 'q':
-          bQ |= 1L << square;
+          bQ = add(bQ, square);
           break;
         case 'k':
-          bK |= 1L << square;
+          bK = add(bK, square);
           break;
         case 'P':
-          wP |= 1L << square;
+          wP = add(wP, square);
           break;
         case 'N':
-          wN |= 1L << square;
+          wN = add(wN, square);
           break;
         case 'B':
-          wB |= 1L << square;
+          wB = add(wB, square);
           break;
         case 'R':
-          wR |= 1L << square;
+          wR = add(wR, square);
           break;
         case 'Q':
-          wQ |= 1L << square;
+          wQ = add(wQ, square);
           break;
         case 'K':
-          wK |= 1L << square;
+          wK = add(wK, square);
           break;
         default:
           file += (int) c;
@@ -153,7 +156,7 @@ public class Board {
       for (int file = 0; file <= 7; file++) {
         int i = fileAndRankToSquare(file, rank);
 
-        if ((allPieces & 1L << i) == 0) {
+        if (!isSet(allPieces, i)) {
           consecutive++;
         } else {
           if (consecutive > 0) {
@@ -161,32 +164,32 @@ public class Board {
             consecutive = 0;
           }
 
-          if ((wPieces & 1L << i) != 0) {
-            if ((wP & 1L << i) != 0) {
+          if (isSet(wPieces, i)) {
+            if (isSet(wP, i)) {
               pieces += "P";
-            } else if ((wN & 1L << i) != 0) {
+            } else if (isSet(wN, i)) {
               pieces += "N";
-            } else if ((wB & 1L << i) != 0) {
+            } else if (isSet(wB, i)) {
               pieces += "B";
-            } else if ((wR & 1L << i) != 0) {
+            } else if (isSet(wR, i)) {
               pieces += "R";
-            } else if ((wQ & 1L << i) != 0) {
+            } else if (isSet(wQ, i)) {
               pieces += "Q";
-            } else if ((wK & 1L << i) != 0) {
+            } else if (isSet(wK, i)) {
               pieces += "K";
             }
           } else {
-            if ((bP & 1L << i) != 0) {
+            if (isSet(bP, i)) {
               pieces += "p";
-            } else if ((bN & 1L << i) != 0) {
+            } else if (isSet(bN, i)) {
               pieces += "n";
-            } else if ((bB & 1L << i) != 0) {
+            } else if (isSet(bB, i)) {
               pieces += "b";
-            } else if ((bR & 1L << i) != 0) {
+            } else if (isSet(bR, i)) {
               pieces += "r";
-            } else if ((bQ & 1L << i) != 0) {
+            } else if (isSet(bQ, i)) {
               pieces += "q";
-            } else if ((bK & 1L << i) != 0) {
+            } else if (isSet(bK, i)) {
               pieces += "k";
             }
           }
@@ -264,32 +267,32 @@ public class Board {
       for (int file = 0; file <= 7; file++) {
         int i = fileAndRankToSquare(file, rank);
 
-        if ((wPieces & 1L << i) != 0) {
-          if ((wP & 1L << i) != 0) {
+        if (isSet(wPieces, i)) {
+          if (isSet(wP, i)) {
             boardString += "P ";
-          } else if ((wN & 1L << i) != 0) {
+          } else if (isSet(wN, i)) {
             boardString += "N ";
-          } else if ((wB & 1L << i) != 0) {
+          } else if (isSet(wB, i)) {
             boardString += "B ";
-          } else if ((wR & 1L << i) != 0) {
+          } else if (isSet(wR, i)) {
             boardString += "R ";
-          } else if ((wQ & 1L << i) != 0) {
+          } else if (isSet(wQ, i)) {
             boardString += "Q ";
-          } else if ((wK & 1L << i) != 0) {
+          } else if (isSet(wK, i)) {
             boardString += "K ";
           }
-        } else if ((bPieces & 1L << i) != 0) {
-          if ((bP & 1L << i) != 0) {
+        } else if (isSet(bPieces, i)) {
+          if (isSet(bP, i)) {
             boardString += "p ";
-          } else if ((bN & 1L << i) != 0) {
+          } else if (isSet(bN, i)) {
             boardString += "n ";
-          } else if ((bB & 1L << i) != 0) {
+          } else if (isSet(bB, i)) {
             boardString += "b ";
-          } else if ((bR & 1L << i) != 0) {
+          } else if (isSet(bR, i)) {
             boardString += "r ";
-          } else if ((bQ & 1L << i) != 0) {
+          } else if (isSet(bQ, i)) {
             boardString += "q ";
-          } else if ((bK & 1L << i) != 0) {
+          } else if (isSet(bK, i)) {
             boardString += "k ";
           }
         } else {
