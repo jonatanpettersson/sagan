@@ -1,4 +1,4 @@
-package com.apptinus;
+package com.apptinus.sagan;
 
 public class Main {
   public static void main(String[] args) {

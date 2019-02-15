@@ -1,4 +1,4 @@
-package com.apptinus.board;
+package com.apptinus.sagan.board;
 
 public class Move {
   /*

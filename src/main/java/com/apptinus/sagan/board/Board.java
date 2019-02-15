@@ -1,8 +1,8 @@
-package com.apptinus.board;
+package com.apptinus.sagan.board;
 
-import static com.apptinus.util.Bitops.*;
+import static com.apptinus.sagan.util.Bitops.add;
+import static com.apptinus.sagan.util.Bitops.isSet;
 
-import com.apptinus.util.Bitops;
 import java.util.Collections;
 
 public class Board {
@@ -263,7 +263,7 @@ public class Board {
 
   public String prettyPrintBoard() {
     String boardString = "";
-    for (int rank = 7 ; rank >=0; rank--) {
+    for (int rank = 7; rank >= 0; rank--) {
       for (int file = 0; file <= 7; file++) {
         int i = fileAndRankToSquare(file, rank);
 

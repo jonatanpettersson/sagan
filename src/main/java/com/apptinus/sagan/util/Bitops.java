@@ -1,4 +1,4 @@
-package com.apptinus.util;
+package com.apptinus.sagan.util;
 
 public class Bitops {
 
@@ -10,4 +10,7 @@ public class Bitops {
     return (bb & 1L << square) != 0;
   }
 
+  public static int nextSet(long bb) {
+
+  }
 }
