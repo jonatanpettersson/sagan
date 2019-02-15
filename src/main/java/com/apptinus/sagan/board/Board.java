@@ -1,7 +1,7 @@
 package com.apptinus.sagan.board;
 
-import static com.apptinus.sagan.util.Bitops.add;
 import static com.apptinus.sagan.util.Bitops.isSet;
+import static com.apptinus.sagan.util.Bitops.set;
 
 import java.util.Collections;
 
@@ -65,40 +65,40 @@ public class Board {
       int square = fileAndRankToSquare(file, rank);
       switch (c) {
         case 'p':
-          bP = add(bP, square);
+          bP = set(bP, square);
           break;
         case 'n':
-          bN = add(bN, square);
+          bN = set(bN, square);
           break;
         case 'b':
-          bB = add(bB, square);
+          bB = set(bB, square);
           break;
         case 'r':
-          bR = add(bR, square);
+          bR = set(bR, square);
           break;
         case 'q':
-          bQ = add(bQ, square);
+          bQ = set(bQ, square);
           break;
         case 'k':
-          bK = add(bK, square);
+          bK = set(bK, square);
           break;
         case 'P':
-          wP = add(wP, square);
+          wP = set(wP, square);
           break;
         case 'N':
-          wN = add(wN, square);
+          wN = set(wN, square);
           break;
         case 'B':
-          wB = add(wB, square);
+          wB = set(wB, square);
           break;
         case 'R':
-          wR = add(wR, square);
+          wR = set(wR, square);
           break;
         case 'Q':
-          wQ = add(wQ, square);
+          wQ = set(wQ, square);
           break;
         case 'K':
-          wK = add(wK, square);
+          wK = set(wK, square);
           break;
         default:
           file += (int) c;
