@@ -1,5 +1,6 @@
 package com.apptinus.sagan.board;
 
+import static com.apptinus.sagan.board.Move.*;
 import static com.apptinus.sagan.board.Move.from;
 import static com.apptinus.sagan.board.Move.m;
 import static com.apptinus.sagan.board.Move.promotion;
@@ -69,5 +70,33 @@ public class MoveTest {
     assertEquals(56, to(actualMove));
     assertEquals(1, special(actualMove));
     assertEquals(3, promotion(actualMove));
+  }
+
+  @Test
+  public void testHistoryWithEp() {
+    int expectedHistory = 0b110000001001000010110;
+    int actualHistory = h(2, 1, 1, 16, 2, 12);
+
+    assertEquals(expectedHistory, actualHistory);
+    assertEquals(2, wCastle(actualHistory));
+    assertEquals(1, bCastle(actualHistory));
+    assertEquals(1, hasEp(actualHistory));
+    assertEquals(16, epSquare(actualHistory));
+    assertEquals(2, fPly(actualHistory));
+    assertEquals(12, capturedPiece(actualHistory));
+  }
+
+  @Test
+  public void testHistoryWithoutEp() {
+    int expectedHistory = 0b000000001001000000000;
+    int actualHistory = h(0, 0, 0, 16, 2, 0);
+
+    assertEquals(expectedHistory, actualHistory);
+    assertEquals(0, wCastle(actualHistory));
+    assertEquals(0, bCastle(actualHistory));
+    assertEquals(0, hasEp(actualHistory));
+    assertEquals(-1, epSquare(actualHistory));
+    assertEquals(2, fPly(actualHistory));
+    assertEquals(0, capturedPiece(actualHistory));
   }
 }

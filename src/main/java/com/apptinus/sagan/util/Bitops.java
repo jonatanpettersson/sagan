@@ -18,7 +18,15 @@ public class Bitops {
     return bb & unsetBit(square);
   }
 
+  public static int unset(int bb, int square) {
+    return bb & (int)unsetBit(square);
+  }
+
   public static boolean isSet(long bb, int square) {
+    return (bb & setBit(square)) != 0;
+  }
+
+  public static boolean isSet(int bb, int square) {
     return (bb & setBit(square)) != 0;
   }
 

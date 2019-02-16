@@ -2,12 +2,25 @@ package com.apptinus.sagan.board;
 
 public class Move {
   /*
+  Move
   0000000000000000|00|00|000000|000000
   First 16 bits not used for now
   Promotion type (0 - Knight, 1 - Bishop, 2 - Rook, 3 - Queen)
   Special move (0 - None, 1 - Promotion, 2 - En passant, 3 - Castle
   To square (0-63)
   From square (0-63)
+   */
+
+  /*
+  History
+  00000000000|0000|000000|000000|0|00|00
+  First not used
+  Captured piece
+  Half move count
+  Ep square
+  Has ep
+  Black castle
+  White castle
    */
 
   public static final int PROMO_N = 0;
@@ -21,7 +34,7 @@ public class Move {
   public static final int SPECIAL_CASTLE = 3;
 
   public static int m(int from, int to, int special, int promotion) {
-    return (0 | from | to << 6 | special << 12 | promotion << 14);
+    return (from | to << 6 | special << 12 | promotion << 14);
   }
 
   public static int from(int move) {
@@ -38,6 +51,40 @@ public class Move {
 
   public static int promotion(int move) {
     return move >>> 14 & 3;
+  }
+
+  public static int h(
+      int wCastle, int bCastle, int hasEp, int epSquare, int fPly, int capturedPiece) {
+    return (wCastle
+            | bCastle << 2
+            | hasEp << 4
+            | epSquare << 5
+            | fPly << 11
+            | capturedPiece << 17);
+  }
+
+  public static int wCastle(int history) {
+    return history & 3;
+  }
+
+  public static int bCastle(int history) {
+    return history >>> 2 & 3;
+  }
+
+  public static int hasEp(int history) {
+    return history >>> 4 & 1;
+  }
+
+  public static int epSquare(int history) {
+    return hasEp(history) == 1 ? history >>> 5 & 63 : -1;
+  }
+
+  public static int fPly(int history) {
+    return history >>> 11 & 63;
+  }
+
+  public static int capturedPiece(int history) {
+    return history >>> 17 & 15;
   }
 
   public static final int A1 = 0;

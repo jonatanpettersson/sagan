@@ -20,11 +20,17 @@ import static com.apptinus.sagan.board.Move.S;
 import static com.apptinus.sagan.board.Move.SPECIAL_CASTLE;
 import static com.apptinus.sagan.board.Move.SPECIAL_EP;
 import static com.apptinus.sagan.board.Move.SPECIAL_PROMO;
+import static com.apptinus.sagan.board.Move.bCastle;
+import static com.apptinus.sagan.board.Move.capturedPiece;
 import static com.apptinus.sagan.board.Move.dir;
+import static com.apptinus.sagan.board.Move.epSquare;
+import static com.apptinus.sagan.board.Move.fPly;
 import static com.apptinus.sagan.board.Move.from;
+import static com.apptinus.sagan.board.Move.h;
 import static com.apptinus.sagan.board.Move.promotion;
 import static com.apptinus.sagan.board.Move.special;
 import static com.apptinus.sagan.board.Move.to;
+import static com.apptinus.sagan.board.Move.wCastle;
 import static com.apptinus.sagan.util.Bitops.isSet;
 import static com.apptinus.sagan.util.Bitops.set;
 import static com.apptinus.sagan.util.Bitops.unset;
@@ -50,14 +56,14 @@ public class Board {
 
   public long[] pieces = new long[12];
 
-  public int[] captureHistory = new int[1024];
+  public int[] history = new int[1024];
 
   public long wPieces;
   public long bPieces;
   public long allPieces;
 
-  public long wCastle; // 0 no castle, 1 short, 2 long, 3 both
-  public long bCastle; // 0 no castle, 1 short, 2 long, 3 both
+  public int wCastle; // 0 no castle, 1 short, 2 long, 3 both
+  public int bCastle; // 0 no castle, 1 short, 2 long, 3 both
   public int toMove; // 0 white, 1 black
   public int ep; // Available en passant square
   public int fPly; // Half moves since capture (fifty moves counter)
@@ -71,8 +77,8 @@ public class Board {
     int moving = piece <= 5 ? 0 : 1;
 
     toMove = (toMove == 0) ? 1 : 0;
-    board[from] = EE;
-    unset(pieces[piece], from);
+
+    unsetPiece(from, piece);
 
     int toPiece = piece;
     if (special == SPECIAL_PROMO) {
@@ -98,18 +104,12 @@ public class Board {
     if (special == SPECIAL_EP) {
       captureSquare = moving == 0 ? dir(to, S) : dir(to, N);
       capturedPiece = board[captureSquare];
-      unset(pieces[board[captureSquare]], captureSquare);
-      board[captureSquare] = EE;
+      unsetPiece(captureSquare, capturedPiece);
     }
 
-    board[to] = toPiece;
-    set(pieces[toPiece], to);
+    setPiece(to, toPiece);
 
-    if (capturedPiece != EE) {
-      captureHistory[ply] = capturedPiece;
-    }
-
-    ply++;
+    history[ply] = h(wCastle, bCastle, ep >= 0 ? 1 : 0, ep == -1 ? 0 : ep, fPly, capturedPiece);
 
     if (capturedPiece != EE || piece == WP || piece == BP) {
       fPly = 0;
@@ -139,10 +139,8 @@ public class Board {
           break;
       }
 
-      board[rookToSquare] = castlingRook;
-      set(pieces[castlingRook], rookToSquare);
-      board[rookFromSquare] = EE;
-      unset(pieces[castlingRook], rookFromSquare);
+      setPiece(rookToSquare, castlingRook);
+      unsetPiece(rookFromSquare, castlingRook);
     }
 
     if (wCastle != 0) {
@@ -171,9 +169,91 @@ public class Board {
     } else {
       ep = -1;
     }
+
+    ply++;
   }
 
-  public void unmake(int move) {}
+  public void unmake(int move) {
+    int from = from(move);
+    int to = to(move);
+    int special = special(move);
+    int piece = board[to];
+    int moving = piece <= 5 ? 0 : 1;
+
+    ply--;
+    toMove = (toMove == 0) ? 1 : 0;
+    wCastle = wCastle(history[ply]);
+    bCastle = bCastle(history[ply]);
+    ep = epSquare(history[ply]);
+    fPly = fPly(history[ply]);
+
+    if (special == SPECIAL_PROMO) {
+      piece = moving == 0 ? WP : BP;
+    }
+
+    if (special == SPECIAL_EP) {
+      int capturedPawn;
+      int capturedPawnSquare;
+      if (moving == 0) {
+        capturedPawn = BP;
+        capturedPawnSquare = to + S;
+      } else {
+        capturedPawn = WP;
+        capturedPawnSquare = to + N;
+      }
+
+      setPiece(capturedPawnSquare, capturedPawn);
+      unsetPiece(to, piece);
+    } else {
+      int capturedPiece = capturedPiece(history[ply]);
+      setPiece(to, capturedPiece);
+    }
+
+    setPiece(from, piece);
+
+    if (special == SPECIAL_CASTLE) {
+      int rookFromSquare = H8;
+      int rookToSquare = F8;
+      int castlingRook = BR;
+      switch (to) {
+        case C1:
+          rookFromSquare = A1;
+          rookToSquare = D1;
+          castlingRook = WR;
+          break;
+        case G1:
+          rookFromSquare = H1;
+          rookToSquare = F1;
+          castlingRook = WR;
+          break;
+        case C8:
+          rookFromSquare = A8;
+          rookToSquare = D8;
+          castlingRook = BR;
+          break;
+      }
+
+      board[rookFromSquare] = castlingRook;
+      set(pieces[castlingRook], rookFromSquare);
+      board[rookToSquare] = EE;
+      unset(pieces[castlingRook], rookToSquare);
+    }
+  }
+
+  private void setPiece(int square, int piece) {
+    board[square] = piece;
+    if (piece != EE) {
+      set(pieces[piece], square);
+    }
+  }
+
+  private void unsetPiece(int square, int piece) {
+    board[square] = EE;
+
+    if (piece != EE) {
+      unset(pieces[piece], square);
+    }
+  }
 
   public void setFen(String fen) {
     // Note: Unpredictable results if fen is malformed (no sanity checking at all)
@@ -378,7 +458,7 @@ public class Board {
   public void clear() {
     pieces = new long[12];
 
-    captureHistory = new int[1024];
+    history = new int[1024];
 
     wPieces = 0L;
     bPieces = 0L;
