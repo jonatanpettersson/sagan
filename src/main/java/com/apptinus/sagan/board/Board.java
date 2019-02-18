@@ -11,28 +11,29 @@ import static com.apptinus.sagan.board.Move.F8;
 import static com.apptinus.sagan.board.Move.G1;
 import static com.apptinus.sagan.board.Move.H1;
 import static com.apptinus.sagan.board.Move.H8;
-import static com.apptinus.sagan.board.Move.N;
 import static com.apptinus.sagan.board.Move.PROMO_B;
 import static com.apptinus.sagan.board.Move.PROMO_N;
 import static com.apptinus.sagan.board.Move.PROMO_Q;
 import static com.apptinus.sagan.board.Move.PROMO_R;
-import static com.apptinus.sagan.board.Move.S;
 import static com.apptinus.sagan.board.Move.SPECIAL_CASTLE;
 import static com.apptinus.sagan.board.Move.SPECIAL_EP;
 import static com.apptinus.sagan.board.Move.SPECIAL_PROMO;
 import static com.apptinus.sagan.board.Move.bCastle;
 import static com.apptinus.sagan.board.Move.capturedPiece;
-import static com.apptinus.sagan.board.Move.dir;
 import static com.apptinus.sagan.board.Move.epSquare;
 import static com.apptinus.sagan.board.Move.fPly;
 import static com.apptinus.sagan.board.Move.from;
 import static com.apptinus.sagan.board.Move.h;
+import static com.apptinus.sagan.board.Move.no;
 import static com.apptinus.sagan.board.Move.promotion;
+import static com.apptinus.sagan.board.Move.so;
 import static com.apptinus.sagan.board.Move.special;
 import static com.apptinus.sagan.board.Move.to;
 import static com.apptinus.sagan.board.Move.wCastle;
 import static com.apptinus.sagan.util.Bitops.isSet;
+import static com.apptinus.sagan.util.Bitops.next;
 import static com.apptinus.sagan.util.Bitops.set;
+import static com.apptinus.sagan.util.Bitops.setBit;
 import static com.apptinus.sagan.util.Bitops.unset;
 
 import java.util.Collections;
@@ -102,7 +103,7 @@ public class Board {
     int capturedPiece = board[captureSquare];
 
     if (special == SPECIAL_EP) {
-      captureSquare = moving == 0 ? dir(to, S) : dir(to, N);
+      captureSquare = moving == 0 ? next(so(setBit(to))) : next(no(setBit(to)));
       capturedPiece = board[captureSquare];
       unsetPiece(captureSquare, capturedPiece);
     }
@@ -162,10 +163,10 @@ public class Board {
       }
     }
 
-    if (piece == WP && to - from == N + N) {
-      ep = to + S;
-    } else if (piece == BP && from - to == N + N) {
-      ep = to + N;
+    if (piece == WP && to - from == 16) {
+        ep = next(so(setBit(to)));
+    } else if (piece == BP && from - to == 16) {
+      ep = next(no(setBit(to)));
     } else {
       ep = -1;
     }
@@ -196,10 +197,10 @@ public class Board {
       int capturedPawnSquare;
       if (moving == 0) {
         capturedPawn = BP;
-        capturedPawnSquare = to + S;
+        capturedPawnSquare = next(so(setBit(to)));
       } else {
         capturedPawn = WP;
-        capturedPawnSquare = to + N;
+        capturedPawnSquare = next(no(setBit(to)));
       }
 
       setPiece(capturedPawnSquare, capturedPawn);

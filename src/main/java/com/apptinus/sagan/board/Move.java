@@ -55,12 +55,7 @@ public class Move {
 
   public static int h(
       int wCastle, int bCastle, int hasEp, int epSquare, int fPly, int capturedPiece) {
-    return (wCastle
-            | bCastle << 2
-            | hasEp << 4
-            | epSquare << 5
-            | fPly << 11
-            | capturedPiece << 17);
+    return (wCastle | bCastle << 2 | hasEp << 4 | epSquare << 5 | fPly << 11 | capturedPiece << 17);
   }
 
   public static int wCastle(int history) {
@@ -86,6 +81,82 @@ public class Move {
   public static int capturedPiece(int history) {
     return history >>> 17 & 15;
   }
+
+  public static final long no(long s) {
+    return s << 8;
+  }
+
+  public static final long so(long s) {
+    return s >>> 8;
+  }
+
+  public static final long we(long s) {
+    return (s << 1) & notHFile;
+  }
+
+  public static final long ea(long s) {
+    return (s >>> 1) & notAFile;
+  }
+
+  public static final long noEa(long s) {
+    return (s << 9) & notAFile;
+  }
+
+  public static final long noWe(long s) {
+    return (s << 7) & notHFile;
+  }
+
+  public static final long soEa(long s) {
+    return (s >>> 7) & notAFile;
+  }
+
+  public static final long soWe(long s) {
+    return (s >>> 9) & notHFile;
+  }
+
+  public static final long noNoEa(long s) {
+    return (s << 17) & notAFile;
+  }
+
+  public static final long noEaEa(long s) {
+    return (s << 10) & notABFile;
+  }
+
+  public static final long soEaEa(long s) {
+    return (s >>> 6) & notABFile;
+  }
+
+  public static final long soSoEa(long s) {
+    return (s >>> 15) & notAFile;
+  }
+
+  public static final long noNoWe(long s) {
+    return (s << 15) & notHFile;
+  }
+
+  public static final long noWeWe(long s) {
+    return (s << 6) & notGHFile;
+  }
+
+  public static final long soWeWe(long s) {
+    return (s >>> 10) & notGHFile;
+  }
+
+  public static final long soSoWe(long s) {
+    return (s >>> 17) & notHFile;
+  }
+
+  public static final long notAFile =
+      0b1111111011111110111111101111111011111110111111101111111011111110L;
+
+  public static final long notABFile =
+      0b1111110011111100111111001111110011111100111111001111110011111100L;
+
+  public static final long notHFile =
+      0b0111111101111111011111110111111101111111011111110111111101111111L;
+
+  public static final long notGHFile =
+      0b0011111100111111001111110011111100111111001111110011111100111111L;
 
   public static final int A1 = 0;
   public static final int B1 = 1;
@@ -151,19 +222,4 @@ public class Move {
   public static final int F8 = 61;
   public static final int G8 = 62;
   public static final int H8 = 63;
-
-  public static final int N = 8;
-  public static final int E = 1;
-  public static final int W = -1;
-  public static final int S = -8;
-  public static final int NN = 16;
-  public static final int NE = 9;
-  public static final int NW = 7;
-  public static final int SS = -16;
-  public static final int SE = -7;
-  public static final int SW = -9;
-
-  public static int dir(int square, int d) {
-    return square += d;
-  }
 }
