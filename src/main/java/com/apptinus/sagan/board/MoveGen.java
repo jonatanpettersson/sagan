@@ -27,22 +27,23 @@ import static com.apptinus.sagan.util.Bitops.setBit;
 import static com.apptinus.sagan.util.Bitops.unset;
 
 import com.apptinus.sagan.util.Bitops;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class MoveGen {
 
   public static int[] allMoves = new int[256];
   public static int allMovesIdx = 0;
 
-  private static long[] bishopDeltas;
-  private static long[] rookDeltas;
+  public static long[] bishopDeltas;
+  public static long[] rookDeltas;
   private static long[] queenDeltas;
   private static long[] knightDeltas;
   private static long[] kingDeltas;
   private static long[] pawnWhiteCaptureDeltas;
   private static long[] pawnBlackCaptureDeltas;
 
-  private static long[][] magicBishopMoves;
-  private static long[][] magicRookMoves;
+  public static long[][] magicBishopMoves;
+  public static long[][] magicRookMoves;
 
   static {
     bishopDeltas = new long[64];
@@ -76,26 +77,9 @@ public class MoveGen {
       pawnWhiteCaptureDeltas[square] = noEa(square) | noWe(square);
       pawnBlackCaptureDeltas[square] = soEa(square) | soWe(square);
 
-      rookDeltas[square] = rankMask(square) ^ fileMask(square);
-      // Mask out border bit (unless the rook is placed on that border)
-      // A-file
-      if ((bSquare & 0x101010101010101L) == 0) {
-        rookDeltas[square] &= ~0x101010101010101L;
-      }
-      // 1-rank
-      if ((bSquare & 0xffL) == 0) {
-        rookDeltas[square] &= ~0xffL;
-      }
-      // H-file
-      if ((bSquare & 0x8080808080808080L) == 0) {
-        rookDeltas[square] &= ~0x8080808080808080L;
-      }
-      // 8-rank
-      if ((bSquare & 0xff00000000000000L) == 0) {
-        rookDeltas[square] &= ~0xff00000000000000L;
-      }
+      rookDeltas[square] = rookAttackMask(square);
+      bishopDeltas[square] = bishopAttackMask(square);
 
-      bishopDeltas[square] = (diagonalMask(square) ^ antiDiagMask(square)) & 0x7e7e7e7e7e7e00L;
       queenDeltas[square] = rookDeltas[square] ^ bishopDeltas[square];
     }
 
@@ -106,9 +90,15 @@ public class MoveGen {
   public static void genMoves(Board board) {
     allMovesIdx = 0;
     if (board.toMove == 0) {
+      // Statics
       genTargets(board.pieces[Board.WN], knightDeltas, ~board.wPieces);
       genTargets(board.pieces[Board.WK], kingDeltas, ~board.wPieces);
 
+      // Sliding
+      genTargetsRooks(board.pieces[Board.WR], board.allPieces, ~board.wPieces);
+      genTargetsBishops(board.pieces[Board.WB], board.allPieces, ~board.wPieces);
+
+      // Pawns
       long pawnsAbleToPush = so(~board.allPieces) & board.pieces[WP];
       long pawnsAbleToPromote = pawnsAbleToPush & 0xFF000000000000L;
       pawnsAbleToPush &= 0xFFFFFFFFFFFFL;
@@ -124,18 +114,43 @@ public class MoveGen {
         genEp(board.pieces[WP] & (soEa(setBit(board.ep)) | soWe(setBit(board.ep))), board.ep);
       }
 
+      // Castling
       if (isSet(board.wCastle, 1) && (board.allPieces & 0b1100000) == 0) {
         allMoves[allMovesIdx++] = m(E1, G1, 3, 0);
       }
       if (isSet(board.wCastle, 1) && (board.allPieces & 0b1110) == 0) {
         allMoves[allMovesIdx++] = m(E1, C1, 3, 0);
       }
+    } else {
+      throw new NotImplementedException();
+    }
+  }
 
-      for (int i = 0; i < 16; i++) {
-        System.out.println(
-            Board.prettyPrintBitBoard(
-                magicRookMoves[i][MagicBitBoard.magicIndex(board.allPieces, rookDeltas[i], i)]));
+  private static void genTargetsRooks(long pieces, long allPieces, long friendlies) {
+    int from;
+    while ((from = next(pieces)) >= 0) {
+      int to;
+      int magicIndex = MagicBitBoard.magicIndexRook(allPieces, MoveGen.rookDeltas[from], from);
+      long delta = magicRookMoves[from][magicIndex] &= friendlies;
+      while ((to = next(delta)) >= 0) {
+        allMoves[allMovesIdx++] = m(from, to, 0, 0);
+        delta = unset(delta, to);
       }
+      pieces = unset(pieces, from);
+    }
+  }
+
+  private static void genTargetsBishops(long pieces, long allPieces, long friendlies) {
+    int from;
+    while ((from = next(pieces)) >= 0) {
+      int to;
+      int magicIndex = MagicBitBoard.magicIndexBishop(allPieces, MoveGen.bishopDeltas[from], from);
+      long delta = magicBishopMoves[from][magicIndex] &= friendlies;
+      while ((to = next(delta)) >= 0) {
+        allMoves[allMovesIdx++] = m(from, to, 0, 0);
+        delta = unset(delta, to);
+      }
+      pieces = unset(pieces, from);
     }
   }
 
@@ -179,28 +194,58 @@ public class MoveGen {
     }
   }
 
+  public static long bishopAttackMask(int square) {
+    return (diagonalMask(square) ^ antiDiagMask(square)) & 0x7e7e7e7e7e7e00L;
+  }
+
+  public static long rookAttackMask(int square) {
+    long mask = rankMask(square) ^ fileMask(square);
+
+    long bSquare = Bitops.setBit(square);
+
+    // Mask out border bit (unless the rook is placed on that border)
+    // A-file
+    if ((bSquare & 0x101010101010101L) == 0) {
+      mask &= ~0x101010101010101L;
+    }
+    // 1-rank
+    if ((bSquare & 0xffL) == 0) {
+      mask &= ~0xffL;
+    }
+    // H-file
+    if ((bSquare & 0x8080808080808080L) == 0) {
+      mask &= ~0x8080808080808080L;
+    }
+    // 8-rank
+    if ((bSquare & 0xff00000000000000L) == 0) {
+      mask &= ~0xff00000000000000L;
+    }
+
+    return mask;
+  }
+
   // The following four methods are ported from https://www.chessprogramming.org/On_an_empty_Board
   private static long rankMask(int sq) {
     return 0xffL << (sq & 56L);
   }
 
   private static long fileMask(int sq) {
-    return 0x0101010101010101L << (sq & 7);
+    return 0x0101010101010101L << (sq & 7L);
   }
 
   private static long diagonalMask(int sq) {
     long maindia = 0x8040201008040201L;
-    int diag = 8 * (sq & 7) - (sq & 56);
-    int nort = -diag & (diag >>> 31);
-    int sout = diag & (-diag >>> 31);
-    return (maindia >> sout) << nort;
+    long diag = 8L * (sq & 7L) - (sq & 56L);
+    long nort = -diag & (diag >>> 31L);
+    long sout = diag & (-diag >>> 31L);
+    return (maindia >>> sout) << nort;
   }
 
   private static long antiDiagMask(int sq) {
     long maindia = 0x0102040810204080L;
-    int diag = 56 - 8 * (sq & 7) - (sq & 56);
-    int nort = -diag & (diag >>> 31);
-    int sout = diag & (-diag >>> 31);
-    return (maindia >> sout) << nort;
+    long diag = 56L - 8L * (sq & 7L) - (sq & 56L);
+    long nort = -diag & (diag >>> 31L);
+    long sout = diag & (-diag >>> 31L);
+    return (maindia >>> sout) << nort;
   }
 }

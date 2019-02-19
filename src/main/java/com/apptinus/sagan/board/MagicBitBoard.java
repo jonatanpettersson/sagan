@@ -81,80 +81,80 @@ public class MagicBitBoard {
     0x2808041041042082L
   };
 
-  private static long[] magicNumberShiftsRook = {
+  public static long[] magicNumberShiftsRook = {
     52, 53, 53, 53, 53, 53, 53, 52, 53, 54, 54, 54, 54, 54, 54, 53, 53, 54, 54, 54, 54, 54, 54, 53,
     53, 54, 54, 54, 54, 54, 54, 53, 53, 54, 54, 54, 54, 54, 54, 53, 53, 54, 54, 54, 54, 54, 54, 53,
     53, 54, 54, 54, 54, 54, 54, 53, 52, 53, 53, 53, 53, 53, 53, 52
   };
 
   private static long[] magicNumberBishop = {
-    0x2910054208004104L,
-    0x2100630a7020180L,
-    0x5822022042000000L,
-    0x2ca804a100200020L,
-    0x204042200000900L,
-    0x2002121024000002L,
-    0x80404104202000e8L,
-    0x812a020205010840L,
-    0x8005181184080048L,
-    0x1001c20208010101L,
-    0x1001080204002100L,
-    0x1810080489021800L,
-    0x62040420010a00L,
-    0x5028043004300020L,
-    0xc0080a4402605002L,
-    0x8a00a0104220200L,
-    0x940000410821212L,
-    0x1808024a280210L,
-    0x40c0422080a0598L,
-    0x4228020082004050L,
-    0x200800400e00100L,
-    0x20b001230021040L,
-    0x90a0201900c00L,
-    0x4940120a0a0108L,
-    0x20208050a42180L,
-    0x1004804b280200L,
-    0x2048020024040010L,
-    0x102c04004010200L,
-    0x20408204c002010L,
-    0x2411100020080c1L,
-    0x102a008084042100L,
-    0x941030000a09846L,
-    0x244100800400200L,
-    0x4000901010080696L,
-    0x280404180020L,
-    0x800042008240100L,
-    0x220008400088020L,
-    0x4020182000904c9L,
-    0x23010400020600L,
-    0x41040020110302L,
-    0x412101004020818L,
-    0x8022080a09404208L,
-    0x1401210240484800L,
-    0x22244208010080L,
-    0x1105040104000210L,
-    0x2040088800c40081L,
-    0x8184810252000400L,
-    0x4004610041002200L,
-    0x40201a444400810L,
-    0x4611010802020008L,
-    0x80000b0401040402L,
-    0x20004821880a00L,
-    0x8200002022440100L,
-    0x9431801010068L,
-    0x1040c20806108040L,
-    0x804901403022a40L,
-    0x2400202602104000L,
-    0x208520209440204L,
-    0x40c000022013020L,
-    0x2000104000420600L,
-    0x400000260142410L,
-    0x800633408100500L,
-    0x2404080a1410L,
-    0x138200122002900L
+    0x2200810890246L,
+    0x2121040482004040L,
+    0x10408e20405800L,
+    0xc080a0028200818L,
+    0x8002021000080004L,
+    0x8820080484caL,
+    0x80808808085c0001L,
+    0x8828c02a10022002L,
+    0xa0a04a7021030aL,
+    0x140882040920L,
+    0x14100090a10100L,
+    0xc850042400801000L,
+    0x2210240420040010L,
+    0x6000063004200021L,
+    0xc00881808a0L,
+    0x28129082208a2012L,
+    0x80281010200804c0L,
+    0x10000530420040L,
+    0x100c8901012500L,
+    0x1090800802004400L,
+    0x1000820280800L,
+    0x42004262032000L,
+    0x44280203822800L,
+    0x100401284040120L,
+    0x403110000820c108L,
+    0xa020210908201L,
+    0x4020280010024044L,
+    0x100400400c030012L,
+    0xf88100c084044000L,
+    0x8010008401004100L,
+    0x82040400006a0208L,
+    0xc002026804808816L,
+    0xd002101003b42020L,
+    0x2024200103010L,
+    0x20c006414ca1400L,
+    0x3060080080080L,
+    0x10c008400020102L,
+    0x2020108100808050L,
+    0x5012100020804L,
+    0x44c042840002104L,
+    0x2800904422001000L,
+    0x420805202040L,
+    0x4101a0613000080cL,
+    0x1201482024200800L,
+    0x1201200c300L,
+    0x2020020408180240L,
+    0x400202b404082100L,
+    0x24480050408101L,
+    0x24008809a80010L,
+    0x4808220202205001L,
+    0x494142884100011L,
+    0x84084040101L,
+    0x1801002021402L,
+    0xa300112001170020L,
+    0x4101021090480L,
+    0x44080201420405L,
+    0x2881410800822040L,
+    0x20102a0101823000L,
+    0xa20298480804L,
+    0x200826008208840L,
+    0x4210c100L,
+    0x180012224034600L,
+    0x1000418484040048L,
+    0x2280204004a00L
   };
 
-  private static long[] magicNumberShiftsBishop = {
+  public static long[] magicNumberShiftsBishop = {
     58, 59, 59, 59, 59, 59, 59, 58, 59, 59, 59, 59, 59, 59, 59, 59,
     59, 59, 57, 57, 57, 57, 59, 59, 59, 59, 57, 55, 55, 57, 59, 59,
     59, 59, 57, 55, 55, 57, 59, 59, 59, 59, 57, 57, 57, 57, 59, 59,
@@ -170,11 +170,16 @@ public class MagicBitBoard {
   public static long[][] generateMagiBishopMoves(long[] bishopDeltas) {
     long[][] occupancyVariations = generateOccupancyVariations(bishopDeltas);
     return generateMoveDatabase(
-        true, bishopDeltas, occupancyVariations, magicNumberBishop, magicNumberShiftsBishop);
+        false, bishopDeltas, occupancyVariations, magicNumberBishop, magicNumberShiftsBishop);
   }
 
-  public static int magicIndex(long allPieces, long mask, int square) {
+  public static int magicIndexRook(long allPieces, long mask, int square) {
     return (int) (((allPieces & mask) * magicNumberRook[square]) >>> magicNumberShiftsRook[square]);
+  }
+
+  public static int magicIndexBishop(long allPieces, long mask, int square) {
+    return (int)
+        (((allPieces & mask) * magicNumberBishop[square]) >>> magicNumberShiftsBishop[square]);
   }
 
   /**
@@ -228,7 +233,7 @@ public class MagicBitBoard {
     p[j] = -1;
   }
 
-  private static long getRookMovesUntilBlocker(int square, long occupancyVariation) {
+  public static long getRookMovesUntilBlocker(int square, long occupancyVariation) {
     long validMoves = 0L;
     for (int j = square + 8; j <= 63; j += 8) {
       validMoves |= (1L << j);
@@ -249,7 +254,7 @@ public class MagicBitBoard {
     return validMoves;
   }
 
-  private static long getBishopMovesUntilBlocker(int square, long occupancyVariation) {
+  public static long getBishopMovesUntilBlocker(int square, long occupancyVariation) {
     long validMoves = 0L;
     for (int j = square + 9; j % 8 != 0 && j <= 63; j += 9) {
       validMoves |= (1L << j);
@@ -300,8 +305,9 @@ public class MagicBitBoard {
     return magicMoves;
   }
 
-  public static long[][] generateMagicNumbers(
-      boolean isRook, long[] deltas, long[][] occupancyVariation) {
+  public static long[][] generateMagicNumbers(boolean isRook, long[] deltas) {
+    long[][] occupancyVariations = generateOccupancyVariations(deltas);
+
     long[][] result = new long[2][64]; // Magic numbers and magic shifts
     int i, j, square, variationCount;
 
@@ -323,12 +329,12 @@ public class MagicBitBoard {
                 & r.nextLong(); // generate a random number with not many bits set
         for (j = 0; j < variationCount; j++) usedBy[j] = 0;
         for (i = 0, fail = false; i < variationCount && !fail; i++) {
-          index = (int) ((occupancyVariation[square][i] * magicNumber) >>> (64 - bitCount));
+          index = (int) ((occupancyVariations[square][i] * magicNumber) >>> (64 - bitCount));
 
           long untilBlocker =
               isRook
-                  ? getRookMovesUntilBlocker(square, occupancyVariation[square][i])
-                  : getBishopMovesUntilBlocker(square, occupancyVariation[square][i]);
+                  ? getRookMovesUntilBlocker(square, occupancyVariations[square][i])
+                  : getBishopMovesUntilBlocker(square, occupancyVariations[square][i]);
 
           if (usedBy[index] == 0) {
             usedBy[index] = untilBlocker;
@@ -339,7 +345,7 @@ public class MagicBitBoard {
       } while (fail);
 
       result[0][square] = magicNumber;
-      result[0][square] = (64 - bitCount);
+      result[1][square] = (64 - bitCount);
     }
 
     return result;
