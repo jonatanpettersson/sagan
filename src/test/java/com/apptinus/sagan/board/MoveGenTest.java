@@ -12,11 +12,12 @@ public class MoveGenTest {
     board.setFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     //    board.setFen("8/6k1/3R4/8/8/2K5/8/8 w - -");
 
-    MoveGen.genMoves(board);
+    int[] moves = new int[256];
+    int movesTotal = MoveGen.genMoves(board, moves, 0);
 
-    System.out.println("Total moves: " + MoveGen.allMovesIdx);
-    for (int moveIdx = 0; moveIdx < MoveGen.allMovesIdx; moveIdx++) {
-      int move = MoveGen.allMoves[moveIdx];
+    System.out.println("Total moves: " + movesTotal);
+    for (int moveIdx = 0; moveIdx < movesTotal; moveIdx++) {
+      int move = moves[moveIdx];
       System.out.println(
           Board.squareToNotation(Move.from(move)) + "" + Board.squareToNotation(Move.to(move)));
     }

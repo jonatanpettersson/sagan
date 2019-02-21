@@ -2,6 +2,7 @@ package com.apptinus.sagan.board;
 
 import static com.apptinus.sagan.board.Move.A1;
 import static com.apptinus.sagan.board.Move.A8;
+import static com.apptinus.sagan.board.Move.BLACK;
 import static com.apptinus.sagan.board.Move.C1;
 import static com.apptinus.sagan.board.Move.C8;
 import static com.apptinus.sagan.board.Move.D1;
@@ -18,6 +19,7 @@ import static com.apptinus.sagan.board.Move.PROMO_R;
 import static com.apptinus.sagan.board.Move.SPECIAL_CASTLE;
 import static com.apptinus.sagan.board.Move.SPECIAL_EP;
 import static com.apptinus.sagan.board.Move.SPECIAL_PROMO;
+import static com.apptinus.sagan.board.Move.WHITE;
 import static com.apptinus.sagan.board.Move.bCastle;
 import static com.apptinus.sagan.board.Move.capturedPiece;
 import static com.apptinus.sagan.board.Move.epSquare;
@@ -77,7 +79,7 @@ public class Board {
     int piece = board[from];
     int moving = piece <= 5 ? 0 : 1;
 
-    toMove = (toMove == 0) ? 1 : 0;
+    toMove = (toMove == WHITE) ? BLACK : WHITE;
 
     unsetPiece(from, piece);
 
@@ -106,6 +108,10 @@ public class Board {
       captureSquare = moving == 0 ? next(so(setBit(to))) : next(no(setBit(to)));
       capturedPiece = board[captureSquare];
       unsetPiece(captureSquare, capturedPiece);
+    } else {
+      if (capturedPiece != EE) {
+        unsetPiece(captureSquare, capturedPiece);
+      }
     }
 
     setPiece(to, toPiece);
@@ -164,7 +170,7 @@ public class Board {
     }
 
     if (piece == WP && to - from == 16) {
-        ep = next(so(setBit(to)));
+      ep = next(so(setBit(to)));
     } else if (piece == BP && from - to == 16) {
       ep = next(no(setBit(to)));
     } else {
@@ -182,11 +188,13 @@ public class Board {
     int moving = piece <= 5 ? 0 : 1;
 
     ply--;
-    toMove = (toMove == 0) ? 1 : 0;
+    toMove = (toMove == WHITE) ? BLACK : WHITE;
     wCastle = wCastle(history[ply]);
     bCastle = bCastle(history[ply]);
     ep = epSquare(history[ply]);
     fPly = fPly(history[ply]);
+
+    unsetPiece(to, piece);
 
     if (special == SPECIAL_PROMO) {
       piece = moving == 0 ? WP : BP;
@@ -204,10 +212,11 @@ public class Board {
       }
 
       setPiece(capturedPawnSquare, capturedPawn);
-      unsetPiece(to, piece);
     } else {
       int capturedPiece = capturedPiece(history[ply]);
-      setPiece(to, capturedPiece);
+      if (capturedPiece != EE) {
+        setPiece(to, capturedPiece);
+      }
     }
 
     setPiece(from, piece);
@@ -235,24 +244,40 @@ public class Board {
       }
 
       board[rookFromSquare] = castlingRook;
-      set(pieces[castlingRook], rookFromSquare);
+      pieces[castlingRook] = set(pieces[castlingRook], rookFromSquare);
+      allPieces = set(allPieces, rookFromSquare);
       board[rookToSquare] = EE;
-      unset(pieces[castlingRook], rookToSquare);
+      pieces[castlingRook] = unset(pieces[castlingRook], rookToSquare);
+      allPieces = unset(allPieces, rookToSquare);
+      if (piece <= 5) {
+        wPieces = set(wPieces, rookFromSquare);
+        wPieces = unset(wPieces, rookToSquare);
+      } else {
+        bPieces = set(bPieces, rookFromSquare);
+        bPieces = unset(bPieces, rookToSquare);
+      }
     }
   }
 
   private void setPiece(int square, int piece) {
     board[square] = piece;
-    if (piece != EE) {
-      set(pieces[piece], square);
+    pieces[piece] = set(pieces[piece], square);
+    allPieces = set(allPieces, square);
+    if (piece <= 5) {
+      wPieces = set(wPieces, square);
+    } else {
+      bPieces = set(bPieces, square);
     }
   }
 
   private void unsetPiece(int square, int piece) {
     board[square] = EE;
-
-    if (piece != EE) {
-      unset(pieces[piece], square);
+    pieces[piece] = unset(pieces[piece], square);
+    allPieces = unset(allPieces, square);
+    if (piece <= 5) {
+      wPieces = unset(wPieces, square);
+    } else {
+      bPieces = unset(bPieces, square);
     }
   }
 
@@ -270,13 +295,13 @@ public class Board {
 
     String[] fs = fen.split(" ");
 
-    toMove = fs[1].equals("w") ? 0 : 1;
+    toMove = fs[1].equals("w") ? WHITE : BLACK;
     wCastle = (fs[2].contains("K") ? 1 : 0) | (fs[2].contains("Q") ? 1 << 1 : 0);
     bCastle = (fs[2].contains("k") ? 1 : 0) | (fs[2].contains("q") ? 1 << 1 : 0);
     ep = fs[3].equals("-") ? -1 : notationToSquare(fs[3]);
     fPly = Integer.parseInt(fs[4]);
     // Add a ply if black to move, since the full move hasn't accounted for white's last half move
-    ply = (Integer.parseInt(fs[5]) - 1) * 2 + (toMove == 0 ? 0 : 1);
+    ply = (Integer.parseInt(fs[5]) - 1) * 2 + (toMove == WHITE ? 0 : 1);
 
     int i = -1;
     int file = 0;
@@ -365,7 +390,7 @@ public class Board {
   }
 
   public String getFen() {
-    String toMoveString = toMove == 0 ? "w" : "b";
+    String toMoveString = toMove == WHITE ? "w" : "b";
     String epString = ep == -1 ? "-" : squareToNotation(ep);
     String fullMoves = Integer.toString(ply / 2 + 1);
     String halfSinceCapture = Integer.toString(fPly);
@@ -457,6 +482,7 @@ public class Board {
   }
 
   public void clear() {
+    board = new int[64];
     pieces = new long[12];
 
     history = new int[1024];
@@ -467,7 +493,7 @@ public class Board {
 
     wCastle = 0;
     bCastle = 0;
-    toMove = 0;
+    toMove = WHITE;
     ep = -1;
     fPly = 0;
     ply = 0;
@@ -506,6 +532,10 @@ public class Board {
     }
 
     return print;
+  }
+
+  public static String moveToNotation(int move) {
+    return squareToNotation(Move.from(move)) + squareToNotation(Move.to(move));
   }
 
   public String prettyPrintBoard() {
@@ -550,5 +580,24 @@ public class Board {
     }
 
     return boardString;
+  }
+
+  public boolean isAttacked(final int sq, final int attacker) {
+    long knights, kings, bishopsQueens, rooksQueens;
+    knights = pieces[WN] | pieces[BN];
+    kings = pieces[WK] | pieces[BK];
+    rooksQueens = bishopsQueens = pieces[WQ] | pieces[BQ];
+    rooksQueens |= pieces[WR] | pieces[BR];
+    bishopsQueens |= pieces[WB] | pieces[BB];
+
+    long attackers = (MoveGen.pawnWhiteCaptureDeltas[sq] & pieces[BP])
+        | (MoveGen.pawnBlackCaptureDeltas[sq] & pieces[WP])
+        | (MoveGen.knightDeltas[sq] & knights)
+        | (MoveGen.kingDeltas[sq] & kings)
+        | (MoveGen.genTargetsBishops(sq, allPieces, attacker == 0 ? ~bPieces : ~wPieces) & bishopsQueens)
+        | (MoveGen.genTargetsRooks(sq, allPieces, attacker == 0 ? ~bPieces : ~wPieces) & rooksQueens);
+
+    attackers &= attacker == 0 ? wPieces : bPieces;
+    return attackers != 0;
   }
 }

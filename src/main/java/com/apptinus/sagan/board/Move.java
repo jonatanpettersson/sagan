@@ -91,11 +91,11 @@ public class Move {
   }
 
   public static final long we(long s) {
-    return (s << 1) & notHFile;
+    return (s >>> 1) & notHFile;
   }
 
   public static final long ea(long s) {
-    return (s >>> 1) & notAFile;
+    return (s << 1) & notAFile;
   }
 
   public static final long noEa(long s) {
@@ -157,6 +157,9 @@ public class Move {
 
   public static final long notGHFile =
       0b0011111100111111001111110011111100111111001111110011111100111111L;
+
+  public static final int WHITE = 0;
+  public static final int BLACK = 1;
 
   public static final int A1 = 0;
   public static final int B1 = 1;
