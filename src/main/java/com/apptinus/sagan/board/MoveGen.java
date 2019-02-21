@@ -135,16 +135,13 @@ public class MoveGen {
 
       // Pawns
       long pawnsAbleToPush = so(~board.allPieces) & board.pieces[WP];
-      long pawnsAbleToPromote = pawnsAbleToPush & 0xFF000000000000L;
-      pawnsAbleToPush &= 0xFFFFFFFFFFFFL;
       long pawsAbleToPushPush =
           so(~board.allPieces & so(~board.allPieces & 0xFF000000)) & board.pieces[WP] & 0xFF00;
 
-      movesIdx = genTargets(pawnsAbleToPush, 8, moves, movesIdx);
+      movesIdx = genPawnTargets(pawnsAbleToPush, 8, moves, movesIdx);
       movesIdx = genTargets(pawsAbleToPushPush, 16, moves, movesIdx);
-      movesIdx = genPawnPromotions(pawnsAbleToPromote, 8, moves, movesIdx);
       movesIdx =
-          genTargets(board.pieces[WP], pawnWhiteCaptureDeltas, board.bPieces, moves, movesIdx);
+          genPawnTargets(board.pieces[WP], pawnWhiteCaptureDeltas, board.bPieces, moves, movesIdx);
 
       if (board.ep != -1) {
         movesIdx =
@@ -158,12 +155,12 @@ public class MoveGen {
       // Castling
       if ((board.wCastle & 0b01L) != 0
           && (board.allPieces & 0b1100000) == 0
-          && !board.isAttacked(F1, BLACK)) {
+          && !board.isAttacked(F1, BLACK) && !board.isAttacked(E1, BLACK)) {
         moves[movesIdx++] = m(E1, G1, 3, 0);
       }
       if ((board.wCastle & 0b10L) != 0
           && (board.allPieces & 0b1110) == 0
-          && !board.isAttacked(D1, BLACK)) {
+          && !board.isAttacked(D1, BLACK) && !board.isAttacked(E1, BLACK)) {
         moves[movesIdx++] = m(E1, C1, 3, 0);
       }
     } else {
@@ -185,18 +182,15 @@ public class MoveGen {
 
       // Pawns
       long pawnsAbleToPush = no(~board.allPieces) & board.pieces[BP];
-      long pawnsAbleToPromote = pawnsAbleToPush & 0xFF00L;
-      pawnsAbleToPush &= 0xFFFFFFFFFFFF0000L;
       long pawsAbleToPushPush =
           no(~board.allPieces & no(~board.allPieces & 0xFF00000000L))
               & board.pieces[BP]
               & 0xFF000000000000L;
 
-      movesIdx = genTargets(pawnsAbleToPush, -8, moves, movesIdx);
+      movesIdx = genPawnTargets(pawnsAbleToPush, -8, moves, movesIdx);
       movesIdx = genTargets(pawsAbleToPushPush, -16, moves, movesIdx);
-      movesIdx = genPawnPromotions(pawnsAbleToPromote, -8, moves, movesIdx);
       movesIdx =
-          genTargets(board.pieces[BP], pawnBlackCaptureDeltas, board.wPieces, moves, movesIdx);
+          genPawnTargets(board.pieces[BP], pawnBlackCaptureDeltas, board.wPieces, moves, movesIdx);
 
       if (board.ep != -1) {
         movesIdx =
@@ -210,12 +204,12 @@ public class MoveGen {
       // Castling
       if ((board.bCastle & 0b01L) != 0
           && (board.allPieces & 0x6000000000000000L) == 0
-          && !board.isAttacked(F8, WHITE)) {
+          && !board.isAttacked(F8, WHITE) && !board.isAttacked(E8, WHITE)) {
         moves[movesIdx++] = m(E8, G8, 3, 0);
       }
       if ((board.bCastle & 0b10L) != 0
           && (board.allPieces & 0xe00000000000000L) == 0
-          && !board.isAttacked(D8, WHITE)) {
+          && !board.isAttacked(D8, WHITE) && !board.isAttacked(E8, WHITE)) {
         moves[movesIdx++] = m(E8, C8, 3, 0);
       }
     }
@@ -307,14 +301,44 @@ public class MoveGen {
     return movesIdx;
   }
 
-  private static int genPawnPromotions(long pieces, int delta, int[] moves, int movesIdx) {
-    int n;
-    while ((n = next(pieces)) >= 0) {
-      moves[movesIdx++] = m(n, n + delta, 1, 0);
-      moves[movesIdx++] = m(n, n + delta, 1, 1);
-      moves[movesIdx++] = m(n, n + delta, 1, 2);
-      moves[movesIdx++] = m(n, n + delta, 1, 3);
-      pieces = unset(pieces, n);
+  private static int genPawnTargets(
+      long pieces, long[] deltas, long friendlies, int[] moves, int movesIdx) {
+    int from;
+    while ((from = next(pieces)) >= 0) {
+      int to;
+      long delta = deltas[from] & friendlies;
+      while ((to = next(delta)) >= 0) {
+        if ((setBit(to) & 0xFF000000000000FFL) != 0) {
+          // Reached first or last rank, pawn promotes
+          moves[movesIdx++] = m(from, to, 1, 0);
+          moves[movesIdx++] = m(from, to, 1, 1);
+          moves[movesIdx++] = m(from, to, 1, 2);
+          moves[movesIdx++] = m(from, to, 1, 3);
+        } else {
+          moves[movesIdx++] = m(from, to, 0, 0);
+        }
+        delta = unset(delta, to);
+      }
+      pieces = unset(pieces, from);
+    }
+
+    return movesIdx;
+  }
+
+  private static int genPawnTargets(long pieces, int delta, int[] moves, int movesIdx) {
+    int from;
+    while ((from = next(pieces)) >= 0) {
+      int to = from + delta;
+      if ((setBit(to) & 0xFF000000000000FFL) != 0) {
+        // Reached first or last rank, pawn promotes
+        moves[movesIdx++] = m(from, to, 1, 0);
+        moves[movesIdx++] = m(from, to, 1, 1);
+        moves[movesIdx++] = m(from, to, 1, 2);
+        moves[movesIdx++] = m(from, to, 1, 3);
+      } else {
+        moves[movesIdx++] = m(from, from + delta, 0, 0);
+      }
+      pieces = unset(pieces, from);
     }
 
     return movesIdx;

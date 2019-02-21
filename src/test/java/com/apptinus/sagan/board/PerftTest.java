@@ -14,13 +14,11 @@ public class PerftTest {
   @Before
   public void setUp() throws Exception {}
 
-  @Test
+//  @Test
   public void testSpecific() {
     Board board = new Board();
-    board.setFen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R4RK1 b kq -");
-//    board.setFen("rnbqkbnr/pppppppp/8/8/8/P7/1PPPPPPP/RNBQKBNR b KQkq -");
-
-    Perft.perft(board, 1, true);
+    board.setFen("r3k2r/p1p1qpb1/bn1ppnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R4RK1 w kq -");
+    Perft.perft(board, 2, true);
   }
 
   @Test
@@ -35,10 +33,10 @@ public class PerftTest {
       197281L,
       4865609L,
       119060324L,
-//      3195901860L,
-//      84998978956L,
-//      2439530234167L,
-//      69352859712417L
+      3195901860L,
+      84998978956L,
+      2439530234167L,
+      69352859712417L
     };
     PerftTestPos position = new PerftTestPos(name, fen, answers);
 

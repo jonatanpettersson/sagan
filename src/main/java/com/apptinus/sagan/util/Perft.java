@@ -52,37 +52,13 @@ public class Perft {
     Long[] children = new Long[256];
 
     for (int i = 0; i < totalMoves; i++) {
-//      if (!Board.moveToNotation(moves[i]).equals("e2e4")) {
-//           continue;
-//      }
-//      System.out.println(
-//          Board.squareToNotation(Move.from(moves[i]))
-//              + ""
-//              + Board.squareToNotation(Move.to(moves[i])));
-      BoardStateTest boardState = new BoardStateTest(board);
       board.make(moves[i]);
       children[i] = new Long(miniMax(board, depth - 1));
       board.unmake(moves[i]);
-
-//      if (!boardState.equals(new BoardStateTest(board))) {
-//        System.out.println(
-//          Board.squareToNotation(Move.from(moves[i]))
-//          + ""
-//          + Board.squareToNotation(Move.to(moves[i])));
-//      }
     }
 
     long nodes = 0;
     for (int i = 0; i < totalMoves; i++) {
-//      if (!Board.moveToNotation(moves[i]).equals("e2e4")) {
-//        continue;
-//      }
-      System.out.print(
-          Board.squareToNotation(Move.from(moves[i]))
-              + ""
-              + Board.squareToNotation(Move.to(moves[i]))
-              + " ");
-      System.out.println(children[i].longValue());
       nodes += children[i].longValue();
     }
 
@@ -105,25 +81,12 @@ public class Perft {
 
     int[] moves = new int[256];
     for (int i = 0; i < 256; i++) moves[i] = 0;
-//    System.out.println(board.getFen());
     int totalMoves = MoveGen.genMoves(board, moves, 0);
 
     for (int i = 0; i < totalMoves; i++) {
-//      System.out.println(
-//          String.join("", Collections.nCopies(8 - depth, " "))
-//              + Board.squareToNotation(Move.from(moves[i]))
-//              + ""
-//              + Board.squareToNotation(Move.to(moves[i])));
-      BoardStateTest boardState = new BoardStateTest(board);
       board.make(moves[i]);
       nodes += miniMax(board, depth - 1);
       board.unmake(moves[i]);
-//      if (!boardState.equals(new BoardStateTest(board))) {
-//        System.out.println(
-//          Board.squareToNotation(Move.from(moves[i]))
-//          + ""
-//          + Board.squareToNotation(Move.to(moves[i])));
-//      }
     }
 
     return nodes;

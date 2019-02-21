@@ -153,19 +153,19 @@ public class Board {
     if (wCastle != 0) {
       if (piece == WK) {
         wCastle = 0;
-      } else if (isSet(wCastle, 0) && (from == H1 || to == H1)) {
+      } else if (from == H1 || to == H1) {
         wCastle = unset(wCastle, 0);
-      } else if (isSet(wCastle, 1) && (from == A1 || to == A1)) {
+      } else if (from == A1 || to == A1) {
         wCastle = unset(wCastle, 1);
       }
     }
     if (bCastle != 0) {
       if (piece == BK) {
         bCastle = 0;
-      } else if (isSet(bCastle, 0) && (from == H8 || to == H8)) {
+      } else if (from == H8 || to == H8) {
         bCastle = unset(bCastle, 0);
-      } else if (isSet(bCastle, 1) && (from == A8 || to == A8)) {
-        wCastle = unset(bCastle, 1);
+      } else if (from == A8 || to == A8) {
+        bCastle = unset(bCastle, 1);
       }
     }
 
