@@ -213,10 +213,10 @@ public class Search {
     }
 
     // We've reached the deepest ply so start the quiescent search
-    //    if (depth / PLY <= 0) {
+        if (depth / PLY <= 0) {
     //      eval = quiescentSearch(board, alpha, beta, ply);
-    //      return eval;
-    //    }
+          return Evaluation.evaluate(board);
+        }
 
     if (stopSearch) return 0; // Stop the search if it's been detected
 
@@ -237,7 +237,20 @@ public class Search {
       }
 
       board.make(searchMoves[ply][i].move); // Make the move on the board
+
       nodesSearched++;
+
+      if (searchedMoves >= 1) {
+        // PVS search
+        eval = -alphaBeta(board, depth - PLY, -alpha - 1, -alpha, ply + 1);
+
+        if (eval > alpha && eval < beta) {
+          // Full depth search
+          eval = -alphaBeta(board, depth - PLY, -beta, -alpha, ply + 1);
+        }
+      } else {
+        eval = -alphaBeta(board, depth - PLY, -beta, -alpha, ply + 1);
+      }
 
       searchedMoves++;
 

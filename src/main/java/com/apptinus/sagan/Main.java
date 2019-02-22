@@ -15,7 +15,7 @@ public class Main {
     // Populate the version from properties file
 
     // Handle arguments
-    String startMode = "uci";
+    String startMode = "console";
     if (args.length > 0) {
       for (int i = 0; i < args.length; i++) {
         if (args[i].equals("-debug")) {
