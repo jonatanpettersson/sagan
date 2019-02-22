@@ -35,4 +35,13 @@ public class Bitops {
     return square == 64 ? -1 : square;
   }
 
+  public static int population(long bb) {
+    int n;
+    int count = 0;
+    while ((n = next(bb)) != -1) {
+      count++;
+      bb = unset(bb, n);
+    }
+    return count;
+  }
 }

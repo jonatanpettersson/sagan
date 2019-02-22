@@ -4,6 +4,7 @@ import static com.apptinus.sagan.util.Bitops.next;
 import static com.apptinus.sagan.util.Bitops.setBit;
 import static com.apptinus.sagan.util.Bitops.unset;
 
+import com.apptinus.sagan.util.Bitops;
 import java.util.Random;
 
 /**
@@ -198,7 +199,7 @@ public class MagicBitBoard {
     for (int square = 0; square <= 63; square++) {
       mask = deltas[square];
       getsetBits(mask, setBitsInMask);
-      for (int i = 0; i < setBit(population(mask)); i++) {
+      for (int i = 0; i < setBit(Bitops.population(mask)); i++) {
         getsetBits(i, setBitsInIndex);
         for (int j = 0; setBitsInIndex[j] != -1; j++) {
           occupancyVariation[square][i] |= 1L << setBitsInMask[setBitsInIndex[j]];
@@ -207,16 +208,6 @@ public class MagicBitBoard {
     }
 
     return occupancyVariation;
-  }
-
-  private static int population(long bb) {
-    int n;
-    int count = 0;
-    while ((n = next(bb)) != -1) {
-      count++;
-      bb = unset(bb, n);
-    }
-    return count;
   }
 
   private static void getsetBits(long a, int[] p) {
@@ -285,7 +276,7 @@ public class MagicBitBoard {
     int magicIndex;
 
     for (int square = 0; square <= 63; square++) {
-      long bitCount = setBit(population(deltas[square]));
+      long bitCount = setBit(Bitops.population(deltas[square]));
 
       for (int i = 0; i < bitCount; i++) {
         magicIndex =
@@ -317,7 +308,7 @@ public class MagicBitBoard {
 
     for (square = 0; square <= 63; square++) {
       System.out.println("Calculating " + Board.squareToNotation(square));
-      int bitCount = population(deltas[square]);
+      int bitCount = Bitops.population(deltas[square]);
       variationCount = (int) (1L << bitCount);
       boolean fail;
       long usedBy[] = new long[(int) (1L << bitCount)];

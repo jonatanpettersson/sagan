@@ -94,27 +94,25 @@ public class MoveGen {
     magicBishopMoves = MagicBitBoard.generateMagiBishopMoves(bishopDeltas);
   }
 
-  public static int genMoves(Board board, int[] moves, int startIndex) {
+  public static int genMoves(Board board, Move[] moves, int startIndex) {
     int totalPseudoMoves = genPseudoLegal(board, moves);
     int totalLegalMoves = 0;
     for (int i = 0; i < totalPseudoMoves + startIndex; i++) {
-      int move = moves[i];
-      //      System.out.println(Board.moveToNotation(move));
-      board.make(move);
-      int checkSquare =
-          board.toMove == WHITE ? Bitops.next(board.pieces[BK]) : Bitops.next(board.pieces[WK]);
-      if (!board.isAttacked(checkSquare, board.toMove)) {
+      Move move = moves[i];
+      int mover = board.toMove;
+      board.make(move.move);
+      if (!board.isInCheck(mover)) {
         moves[startIndex + totalLegalMoves] = move;
         totalLegalMoves++;
       }
       // Check castled over checked square
-      board.unmake(move);
+      board.unmake(move.move);
     }
 
     return totalLegalMoves;
   }
 
-  public static int genPseudoLegal(Board board, int[] moves) {
+  public static int genPseudoLegal(Board board, Move[] moves) {
     int movesIdx = 0;
     if (board.toMove == WHITE) {
       // Statics
@@ -156,12 +154,12 @@ public class MoveGen {
       if ((board.wCastle & 0b01L) != 0
           && (board.allPieces & 0b1100000) == 0
           && !board.isAttacked(F1, BLACK) && !board.isAttacked(E1, BLACK)) {
-        moves[movesIdx++] = m(E1, G1, 3, 0);
+        moves[movesIdx++].move = m(E1, G1, 3, 0);
       }
       if ((board.wCastle & 0b10L) != 0
           && (board.allPieces & 0b1110) == 0
           && !board.isAttacked(D1, BLACK) && !board.isAttacked(E1, BLACK)) {
-        moves[movesIdx++] = m(E1, C1, 3, 0);
+        moves[movesIdx++].move = m(E1, C1, 3, 0);
       }
     } else {
       // Statics
@@ -205,12 +203,12 @@ public class MoveGen {
       if ((board.bCastle & 0b01L) != 0
           && (board.allPieces & 0x6000000000000000L) == 0
           && !board.isAttacked(F8, WHITE) && !board.isAttacked(E8, WHITE)) {
-        moves[movesIdx++] = m(E8, G8, 3, 0);
+        moves[movesIdx++].move = m(E8, G8, 3, 0);
       }
       if ((board.bCastle & 0b10L) != 0
           && (board.allPieces & 0xe00000000000000L) == 0
           && !board.isAttacked(D8, WHITE) && !board.isAttacked(E8, WHITE)) {
-        moves[movesIdx++] = m(E8, C8, 3, 0);
+        moves[movesIdx++].move = m(E8, C8, 3, 0);
       }
     }
 
@@ -218,14 +216,14 @@ public class MoveGen {
   }
 
   private static int genTargetsRooks(
-      long pieces, long allPieces, long antiFriendlies, int[] moves, int movesIdx) {
+      long pieces, long allPieces, long antiFriendlies, Move[] moves, int movesIdx) {
     int from;
     while ((from = next(pieces)) >= 0) {
       int to;
       int magicIndex = MagicBitBoard.magicIndexRook(allPieces, MoveGen.rookDeltas[from], from);
       long delta = magicRookMoves[from][magicIndex] & antiFriendlies;
       while ((to = next(delta)) >= 0) {
-        moves[movesIdx++] = m(from, to, 0, 0);
+        moves[movesIdx++].move = m(from, to, 0, 0);
         delta = unset(delta, to);
       }
       pieces = unset(pieces, from);
@@ -246,14 +244,14 @@ public class MoveGen {
   }
 
   private static int genTargetsBishops(
-      long pieces, long allPieces, long antiFriendlies, int[] moves, int movesIdx) {
+      long pieces, long allPieces, long antiFriendlies, Move[] moves, int movesIdx) {
     int from;
     while ((from = next(pieces)) >= 0) {
       int to;
       int magicIndex = MagicBitBoard.magicIndexBishop(allPieces, MoveGen.bishopDeltas[from], from);
       long delta = magicBishopMoves[from][magicIndex] & antiFriendlies;
       while ((to = next(delta)) >= 0) {
-        moves[movesIdx++] = m(from, to, 0, 0);
+        moves[movesIdx++].move = m(from, to, 0, 0);
         delta = unset(delta, to);
       }
       pieces = unset(pieces, from);
@@ -276,13 +274,13 @@ public class MoveGen {
   }
 
   private static int genTargets(
-      long pieces, long[] deltas, long friendlies, int[] moves, int movesIdx) {
+      long pieces, long[] deltas, long friendlies, Move[] moves, int movesIdx) {
     int n;
     while ((n = next(pieces)) >= 0) {
       int na;
       long delta = deltas[n] & friendlies;
       while ((na = next(delta)) >= 0) {
-        moves[movesIdx++] = m(n, na, 0, 0);
+        moves[movesIdx++].move = m(n, na, 0, 0);
         delta = unset(delta, na);
       }
       pieces = unset(pieces, n);
@@ -291,10 +289,10 @@ public class MoveGen {
     return movesIdx;
   }
 
-  private static int genTargets(long pieces, int delta, int[] moves, int movesIdx) {
+  private static int genTargets(long pieces, int delta, Move[] moves, int movesIdx) {
     int n;
     while ((n = next(pieces)) >= 0) {
-      moves[movesIdx++] = m(n, n + delta, 0, 0);
+      moves[movesIdx++].move = m(n, n + delta, 0, 0);
       pieces = unset(pieces, n);
     }
 
@@ -302,7 +300,7 @@ public class MoveGen {
   }
 
   private static int genPawnTargets(
-      long pieces, long[] deltas, long friendlies, int[] moves, int movesIdx) {
+      long pieces, long[] deltas, long friendlies, Move[] moves, int movesIdx) {
     int from;
     while ((from = next(pieces)) >= 0) {
       int to;
@@ -310,12 +308,12 @@ public class MoveGen {
       while ((to = next(delta)) >= 0) {
         if ((setBit(to) & 0xFF000000000000FFL) != 0) {
           // Reached first or last rank, pawn promotes
-          moves[movesIdx++] = m(from, to, 1, 0);
-          moves[movesIdx++] = m(from, to, 1, 1);
-          moves[movesIdx++] = m(from, to, 1, 2);
-          moves[movesIdx++] = m(from, to, 1, 3);
+          moves[movesIdx++].move = m(from, to, 1, 0);
+          moves[movesIdx++].move = m(from, to, 1, 1);
+          moves[movesIdx++].move = m(from, to, 1, 2);
+          moves[movesIdx++].move = m(from, to, 1, 3);
         } else {
-          moves[movesIdx++] = m(from, to, 0, 0);
+          moves[movesIdx++].move = m(from, to, 0, 0);
         }
         delta = unset(delta, to);
       }
@@ -325,18 +323,18 @@ public class MoveGen {
     return movesIdx;
   }
 
-  private static int genPawnTargets(long pieces, int delta, int[] moves, int movesIdx) {
+  private static int genPawnTargets(long pieces, int delta, Move[] moves, int movesIdx) {
     int from;
     while ((from = next(pieces)) >= 0) {
       int to = from + delta;
       if ((setBit(to) & 0xFF000000000000FFL) != 0) {
         // Reached first or last rank, pawn promotes
-        moves[movesIdx++] = m(from, to, 1, 0);
-        moves[movesIdx++] = m(from, to, 1, 1);
-        moves[movesIdx++] = m(from, to, 1, 2);
-        moves[movesIdx++] = m(from, to, 1, 3);
+        moves[movesIdx++].move = m(from, to, 1, 0);
+        moves[movesIdx++].move = m(from, to, 1, 1);
+        moves[movesIdx++].move = m(from, to, 1, 2);
+        moves[movesIdx++].move = m(from, to, 1, 3);
       } else {
-        moves[movesIdx++] = m(from, from + delta, 0, 0);
+        moves[movesIdx++].move = m(from, from + delta, 0, 0);
       }
       pieces = unset(pieces, from);
     }
@@ -344,10 +342,10 @@ public class MoveGen {
     return movesIdx;
   }
 
-  private static int genEp(long pieces, int target, int[] moves, int movesIdx) {
+  private static int genEp(long pieces, int target, Move[] moves, int movesIdx) {
     int n;
     while ((n = next(pieces)) >= 0) {
-      moves[movesIdx++] = m(n, target, 2, 0);
+      moves[movesIdx++].move = m(n, target, 2, 0);
       pieces = unset(pieces, n);
     }
 

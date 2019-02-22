@@ -38,6 +38,7 @@ import static com.apptinus.sagan.util.Bitops.set;
 import static com.apptinus.sagan.util.Bitops.setBit;
 import static com.apptinus.sagan.util.Bitops.unset;
 
+import com.apptinus.sagan.util.Bitops;
 import java.util.Collections;
 
 public class Board {
@@ -582,7 +583,18 @@ public class Board {
     return boardString;
   }
 
-  public boolean isAttacked(final int sq, final int attacker) {
+  public boolean isInCheck(int sideInCheck) {
+    int checkSquare = sideInCheck == WHITE ? Bitops.next(pieces[WK]) : Bitops.next(pieces[BK]);
+    int attackingSide = sideInCheck == WHITE ? BLACK : WHITE;
+    return isAttacked(checkSquare, attackingSide);
+  }
+
+  public boolean isAttacked(int square, int attacker) {
+    long attackers = attackers(square, attacker);
+    return (attackers & (attacker == 0 ? wPieces : bPieces)) != 0;
+  }
+
+  public long attackers(final int sq, final int attacker) {
     long knights, kings, bishopsQueens, rooksQueens;
     knights = pieces[WN] | pieces[BN];
     kings = pieces[WK] | pieces[BK];
@@ -590,14 +602,11 @@ public class Board {
     rooksQueens |= pieces[WR] | pieces[BR];
     bishopsQueens |= pieces[WB] | pieces[BB];
 
-    long attackers = (MoveGen.pawnWhiteCaptureDeltas[sq] & pieces[BP])
+    return (MoveGen.pawnWhiteCaptureDeltas[sq] & pieces[BP])
         | (MoveGen.pawnBlackCaptureDeltas[sq] & pieces[WP])
         | (MoveGen.knightDeltas[sq] & knights)
         | (MoveGen.kingDeltas[sq] & kings)
         | (MoveGen.genTargetsBishops(sq, allPieces, attacker == 0 ? ~bPieces : ~wPieces) & bishopsQueens)
         | (MoveGen.genTargetsRooks(sq, allPieces, attacker == 0 ? ~bPieces : ~wPieces) & rooksQueens);
-
-    attackers &= attacker == 0 ? wPieces : bPieces;
-    return attackers != 0;
   }
 }

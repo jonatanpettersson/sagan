@@ -6,18 +6,19 @@ import org.junit.Test;
 
 public class MoveGenTest {
 
-  @Test
+  //  @Test
   public void testGen() {
     Board board = new Board();
     board.setFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     //    board.setFen("8/6k1/3R4/8/8/2K5/8/8 w - -");
 
-    int[] moves = new int[256];
+    Move[] moves = new Move[256];
+    for (int i = 0; i < 256; i++) moves[i] = new Move();
     int movesTotal = MoveGen.genMoves(board, moves, 0);
 
     System.out.println("Total moves: " + movesTotal);
     for (int moveIdx = 0; moveIdx < movesTotal; moveIdx++) {
-      int move = moves[moveIdx];
+      int move = moves[moveIdx].move;
       System.out.println(
           Board.squareToNotation(Move.from(move)) + "" + Board.squareToNotation(Move.to(move)));
     }

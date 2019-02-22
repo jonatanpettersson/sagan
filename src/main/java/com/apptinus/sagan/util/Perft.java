@@ -45,16 +45,16 @@ public class Perft {
    * @param depth The depth to search to
    */
   private static long divide(Board board, int depth) {
-    int[] moves = new int[256];
+    Move[] moves = new Move[256];
 
-    for (int i = 0; i < 256; i++) moves[i] = 0;
+    for (int i = 0; i < 256; i++) moves[i] = new Move();
     int totalMoves = MoveGen.genMoves(board, moves, 0);
     Long[] children = new Long[256];
 
     for (int i = 0; i < totalMoves; i++) {
-      board.make(moves[i]);
+      board.make(moves[i].move);
       children[i] = new Long(miniMax(board, depth - 1));
-      board.unmake(moves[i]);
+      board.unmake(moves[i].move);
     }
 
     long nodes = 0;
@@ -79,14 +79,14 @@ public class Perft {
 
     if (depth == 0) return 1;
 
-    int[] moves = new int[256];
-    for (int i = 0; i < 256; i++) moves[i] = 0;
+    Move[] moves = new Move[256];
+    for (int i = 0; i < 256; i++) moves[i] = new Move();
     int totalMoves = MoveGen.genMoves(board, moves, 0);
 
     for (int i = 0; i < totalMoves; i++) {
-      board.make(moves[i]);
+      board.make(moves[i].move);
       nodes += miniMax(board, depth - 1);
-      board.unmake(moves[i]);
+      board.unmake(moves[i].move);
     }
 
     return nodes;

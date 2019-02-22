@@ -3,7 +3,6 @@ package com.apptinus.sagan.board;
 import static org.junit.Assert.assertEquals;
 
 import com.apptinus.sagan.util.Perft;
-import org.junit.Before;
 import org.junit.Test;
 
 public class PerftTest {
@@ -11,10 +10,7 @@ public class PerftTest {
   private static final int maxPly = 40060325;
   private static final int maxDepth = 20;
 
-  @Before
-  public void setUp() throws Exception {}
-
-//  @Test
+  //  @Test
   public void testSpecific() {
     Board board = new Board();
     board.setFen("r3k2r/p1p1qpb1/bn1ppnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R4RK1 w kq -");

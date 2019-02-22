@@ -1,6 +1,9 @@
 package com.apptinus.sagan.board;
 
 public class Move {
+  public int move;
+  public int score;
+
   /*
   Move
   0000000000000000|00|00|000000|000000
