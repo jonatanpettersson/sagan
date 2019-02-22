@@ -1,8 +1,6 @@
 package com.apptinus.sagan.board;
 
-import static com.apptinus.sagan.board.Board.BK;
 import static com.apptinus.sagan.board.Board.BP;
-import static com.apptinus.sagan.board.Board.WK;
 import static com.apptinus.sagan.board.Board.WP;
 import static com.apptinus.sagan.board.Move.BLACK;
 import static com.apptinus.sagan.board.Move.C1;
@@ -153,12 +151,14 @@ public class MoveGen {
       // Castling
       if ((board.wCastle & 0b01L) != 0
           && (board.allPieces & 0b1100000) == 0
-          && !board.isAttacked(F1, BLACK) && !board.isAttacked(E1, BLACK)) {
+          && !board.isAttacked(F1, BLACK)
+          && !board.isAttacked(E1, BLACK)) {
         moves[movesIdx++].move = m(E1, G1, 3, 0);
       }
       if ((board.wCastle & 0b10L) != 0
           && (board.allPieces & 0b1110) == 0
-          && !board.isAttacked(D1, BLACK) && !board.isAttacked(E1, BLACK)) {
+          && !board.isAttacked(D1, BLACK)
+          && !board.isAttacked(E1, BLACK)) {
         moves[movesIdx++].move = m(E1, C1, 3, 0);
       }
     } else {
@@ -202,12 +202,14 @@ public class MoveGen {
       // Castling
       if ((board.bCastle & 0b01L) != 0
           && (board.allPieces & 0x6000000000000000L) == 0
-          && !board.isAttacked(F8, WHITE) && !board.isAttacked(E8, WHITE)) {
+          && !board.isAttacked(F8, WHITE)
+          && !board.isAttacked(E8, WHITE)) {
         moves[movesIdx++].move = m(E8, G8, 3, 0);
       }
       if ((board.bCastle & 0b10L) != 0
           && (board.allPieces & 0xe00000000000000L) == 0
-          && !board.isAttacked(D8, WHITE) && !board.isAttacked(E8, WHITE)) {
+          && !board.isAttacked(D8, WHITE)
+          && !board.isAttacked(E8, WHITE)) {
         moves[movesIdx++].move = m(E8, C8, 3, 0);
       }
     }

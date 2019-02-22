@@ -7,7 +7,6 @@ import com.apptinus.sagan.util.Perft;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import org.junit.Test;
 
 public class BoardTest {

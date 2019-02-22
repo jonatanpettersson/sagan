@@ -1,11 +1,17 @@
 package com.apptinus.sagan.board;
 
-import static com.apptinus.sagan.board.Move.*;
+import static com.apptinus.sagan.board.Move.bCastle;
+import static com.apptinus.sagan.board.Move.capturedPiece;
+import static com.apptinus.sagan.board.Move.epSquare;
+import static com.apptinus.sagan.board.Move.fPly;
 import static com.apptinus.sagan.board.Move.from;
+import static com.apptinus.sagan.board.Move.h;
+import static com.apptinus.sagan.board.Move.hasEp;
 import static com.apptinus.sagan.board.Move.m;
 import static com.apptinus.sagan.board.Move.promotion;
 import static com.apptinus.sagan.board.Move.special;
 import static com.apptinus.sagan.board.Move.to;
+import static com.apptinus.sagan.board.Move.wCastle;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;

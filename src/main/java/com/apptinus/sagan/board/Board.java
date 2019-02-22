@@ -606,7 +606,9 @@ public class Board {
         | (MoveGen.pawnBlackCaptureDeltas[sq] & pieces[WP])
         | (MoveGen.knightDeltas[sq] & knights)
         | (MoveGen.kingDeltas[sq] & kings)
-        | (MoveGen.genTargetsBishops(sq, allPieces, attacker == 0 ? ~bPieces : ~wPieces) & bishopsQueens)
-        | (MoveGen.genTargetsRooks(sq, allPieces, attacker == 0 ? ~bPieces : ~wPieces) & rooksQueens);
+        | (MoveGen.genTargetsBishops(sq, allPieces, attacker == 0 ? ~bPieces : ~wPieces)
+            & bishopsQueens)
+        | (MoveGen.genTargetsRooks(sq, allPieces, attacker == 0 ? ~bPieces : ~wPieces)
+            & rooksQueens);
   }
 }

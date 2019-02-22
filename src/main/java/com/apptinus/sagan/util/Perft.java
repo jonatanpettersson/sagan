@@ -4,7 +4,6 @@ import com.apptinus.sagan.board.Board;
 import com.apptinus.sagan.board.Move;
 import com.apptinus.sagan.board.MoveGen;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Objects;
 
 /**
@@ -153,11 +152,11 @@ public class Perft {
         return false;
       }
       final BoardStateTest that = (BoardStateTest) o;
-      return wPieces == that.wPieces &&
-             bPieces == that.bPieces &&
-             allPieces == that.allPieces &&
-             Arrays.equals(board, that.board) &&
-             Arrays.equals(pieces, that.pieces);
+      return wPieces == that.wPieces
+          && bPieces == that.bPieces
+          && allPieces == that.allPieces
+          && Arrays.equals(board, that.board)
+          && Arrays.equals(pieces, that.pieces);
     }
 
     @Override

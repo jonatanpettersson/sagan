@@ -1,8 +1,6 @@
 package com.apptinus.sagan.board;
 
-import static com.apptinus.sagan.util.Bitops.next;
 import static com.apptinus.sagan.util.Bitops.setBit;
-import static com.apptinus.sagan.util.Bitops.unset;
 
 import com.apptinus.sagan.util.Bitops;
 import java.util.Random;
