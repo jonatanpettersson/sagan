@@ -536,7 +536,18 @@ public class Board {
   }
 
   public static String moveToNotation(int move) {
-    return squareToNotation(Move.from(move)) + squareToNotation(Move.to(move));
+    String notation = squareToNotation(Move.from(move)) + squareToNotation(Move.to(move));
+
+    if (Move.special(move) == SPECIAL_PROMO) {
+      switch (Move.promotion(move)) {
+        case PROMO_N: notation += "n"; break;
+        case PROMO_B: notation += "b"; break;
+        case PROMO_R: notation += "r"; break;
+        default: notation += "q";
+      }
+    }
+
+    return notation;
   }
 
   public String prettyPrintBoard() {
