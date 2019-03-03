@@ -213,10 +213,9 @@ public class Search {
     }
 
     // We've reached the deepest ply so start the quiescent search
-        if (depth / PLY <= 0) {
-    //      eval = quiescentSearch(board, alpha, beta, ply);
-          return Evaluation.evaluate(board);
-        }
+    if (depth / PLY <= 0) {
+      return quiesce(board, alpha, beta, ply);
+    }
 
     if (stopSearch) return 0; // Stop the search if it's been detected
 
@@ -285,7 +284,36 @@ public class Search {
     searchMoves[ply][0].move = bestMove;
 
     return alpha;
-  } // END alphaBeta
+  }
+
+  private static int quiesce(Board board, int alpha, int beta, int ply) {
+    int eval;
+
+    int standPatEval = Evaluation.evaluate(board);
+    if (standPatEval > alpha) {
+      if (standPatEval >= beta) return beta;
+      alpha = standPatEval;
+    }
+
+    int currentMoveCount = MoveGen.genCaptures(board, searchMoves[ply], 0);
+
+    for (int i = 0; i < currentMoveCount; i++) {
+
+      board.make(searchMoves[ply][i].move);
+      nodesSearched++;
+
+      eval = -quiesce(board, -beta, -alpha, ply + 1);
+      board.unmake(searchMoves[ply][i].move);
+
+      if (eval > alpha) {
+        if (eval >= beta) return beta;
+
+        alpha = eval;
+      }
+    }
+
+    return alpha;
+  }
 
   private static String receiveThinking(long time, Eval finalEval) {
     // Built the pv line

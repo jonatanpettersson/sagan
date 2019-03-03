@@ -1,6 +1,7 @@
 package com.apptinus.sagan.board;
 
 import static com.apptinus.sagan.board.Board.BP;
+import static com.apptinus.sagan.board.Board.EE;
 import static com.apptinus.sagan.board.Board.WP;
 import static com.apptinus.sagan.board.Move.BLACK;
 import static com.apptinus.sagan.board.Move.C1;
@@ -13,6 +14,7 @@ import static com.apptinus.sagan.board.Move.F1;
 import static com.apptinus.sagan.board.Move.F8;
 import static com.apptinus.sagan.board.Move.G1;
 import static com.apptinus.sagan.board.Move.G8;
+import static com.apptinus.sagan.board.Move.SPECIAL_EP;
 import static com.apptinus.sagan.board.Move.WHITE;
 import static com.apptinus.sagan.board.Move.ea;
 import static com.apptinus.sagan.board.Move.m;
@@ -97,6 +99,33 @@ public class MoveGen {
     int totalLegalMoves = 0;
     for (int i = 0; i < totalPseudoMoves + startIndex; i++) {
       Move move = moves[i];
+      int mover = board.toMove;
+      board.make(move.move);
+      if (!board.isInCheck(mover)) {
+        moves[startIndex + totalLegalMoves] = move;
+        totalLegalMoves++;
+      }
+      // Check castled over checked square
+      board.unmake(move.move);
+    }
+
+    return totalLegalMoves;
+  }
+
+  public static int genCaptures(Board board, Move[] moves, int startIndex) {
+    // TODO Actually generate only captures, not just filter out non-captures
+    int totalPseudoMoves = genPseudoLegal(board, moves);
+    int totalLegalMoves = 0;
+    for (int i = 0; i < totalPseudoMoves + startIndex; i++) {
+      Move move = moves[i];
+
+      if (board.board[Move.to(move.move)] == EE) {
+        if (Move.special(move.move) != SPECIAL_EP) {
+          // Not a capture so skip
+          continue;
+        }
+      }
+
       int mover = board.toMove;
       board.make(move.move);
       if (!board.isInCheck(mover)) {
