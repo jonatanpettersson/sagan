@@ -31,7 +31,7 @@ public class Evaluation {
       eval += PIECE_VALUE[i] * Bitops.population(board.pieces[i]);
     }
 
-    return eval;
+    return board.toMove == WHITE ? eval : -1 * eval;
   }
 
   public static final boolean sideCantWin(Board board, int side) {

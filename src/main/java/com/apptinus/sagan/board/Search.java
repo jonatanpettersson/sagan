@@ -7,6 +7,7 @@ import static com.apptinus.sagan.board.Move.WHITE;
 
 import ch.qos.logback.classic.Logger;
 import com.apptinus.sagan.Uci;
+import com.apptinus.sagan.util.Perft;
 import java.io.IOException;
 import org.slf4j.LoggerFactory;
 
@@ -69,9 +70,7 @@ public class Search {
 
     // Iterative deepening
     for (currentDepth = 1; currentDepth <= 64; ) {
-      logger.debug("Searching depth " + currentDepth);
       Move bestMove = alphaBetaRoot(board, currentDepth * PLY, alpha, beta, 0);
-      logger.debug("Finished depth " + currentDepth);
       int eval = bestMove.score;
 
       if (stopSearch) {
@@ -148,6 +147,9 @@ public class Search {
     int eval = 0;
     int currentBestEval = -INFINITY;
     int searchedMoves = 0;
+
+    sortMoves(searchMoves[0], depth/PLY==1 ? 0 : 1, rootMovesCount);
+
     for (int i = 0; i < rootMovesCount; i++) {
 
       board.make(searchMoves[ply][i].move);
