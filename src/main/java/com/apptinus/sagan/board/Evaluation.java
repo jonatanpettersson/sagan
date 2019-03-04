@@ -15,8 +15,12 @@ import static com.apptinus.sagan.board.Move.WHITE;
 import com.apptinus.sagan.util.Bitops;
 
 public class Evaluation {
-  private static final int[] PIECE_VALUE = {
+  public static final int[] PIECE_VALUE = {
     0, 900, 500, 300, 300, 100, 0, -900, -500, -300, -300, -100
+  };
+
+  public static final int[] PIECE_ABS_VALUE = {
+    0, 900, 500, 300, 300, 100, 0, 900, 500, 300, 300, 100
   };
 
   public static int evaluate(Board board) {

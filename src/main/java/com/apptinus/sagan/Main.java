@@ -2,13 +2,14 @@ package com.apptinus.sagan;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
+import com.apptinus.sagan.board.MoveGen;
 import java.io.IOException;
 import org.slf4j.LoggerFactory;
 
 public class Main {
   private static Logger logger = (Logger) LoggerFactory.getLogger(Main.class);
 
-  public static final String VERSION = "v0.1";
+  public static final String VERSION = "v0.0.2";
 
   public static void main(String[] args) throws IOException {
 
@@ -28,6 +29,7 @@ public class Main {
     }
 
     logger.info("Starting Sagan " + VERSION);
+    MoveGen.init();
 
     if (startMode.equals("console")) {
       Uci.lineInput();

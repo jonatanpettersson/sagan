@@ -1,9 +1,18 @@
 package com.apptinus.sagan.board;
 
+import static com.apptinus.sagan.board.Board.WP;
+import static com.apptinus.sagan.board.Move.BLACK;
+import static com.apptinus.sagan.board.Move.SPECIAL_EP;
+import static com.apptinus.sagan.board.Move.WHITE;
+
+import ch.qos.logback.classic.Logger;
 import com.apptinus.sagan.Uci;
 import java.io.IOException;
+import org.slf4j.LoggerFactory;
 
 public class Search {
+  private static Logger logger = (Logger) LoggerFactory.getLogger(Search.class);
+
   public static final int TIME_CHECK_INTERVAL = 10000;
   public static final int PLY = 16;
   public static final int MATE_VALUE = -31999;
@@ -29,6 +38,7 @@ public class Search {
 
   public static Eval search(
       Board board, int depth, int timeLeft, int increment, int movetime, boolean isPonder) {
+    startTime = System.currentTimeMillis();
     finalEval = new Eval();
     searchMoves = new Move[64][256];
     for (int i = 0; i < searchMoves.length; i++)
@@ -36,7 +46,6 @@ public class Search {
 
     if (MoveGen.genMoves(board, searchMoves[0], 0) == 0) return finalEval;
     totalNodesSearched = 0;
-    startTime = System.currentTimeMillis();
     stopSearch = false;
     if (movetime == 0) timeForThisMove = calculateTime(timeLeft, increment);
     else timeForThisMove = movetime;
@@ -60,7 +69,9 @@ public class Search {
 
     // Iterative deepening
     for (currentDepth = 1; currentDepth <= 64; ) {
+      logger.debug("Searching depth " + currentDepth);
       Move bestMove = alphaBetaRoot(board, currentDepth * PLY, alpha, beta, 0);
+      logger.debug("Finished depth " + currentDepth);
       int eval = bestMove.score;
 
       if (stopSearch) {
@@ -152,7 +163,6 @@ public class Search {
                 + " currmovenumber "
                 + searchedMoves);
       }
-
       eval = -alphaBeta(board, depth - PLY, -beta, -alpha, ply + 1);
 
       searchedMoves++;
@@ -289,17 +299,53 @@ public class Search {
   private static int quiesce(Board board, int alpha, int beta, int ply) {
     int eval;
 
+    if (!useFixedDepth) {
+      nextTimeCheck--;
+      if (nextTimeCheck == 0) {
+        nextTimeCheck = TIME_CHECK_INTERVAL;
+        if (shouldWeStop()) {
+          stopSearch = true;
+          return 0;
+        }
+      }
+    }
+
     int standPatEval = Evaluation.evaluate(board);
     if (standPatEval > alpha) {
       if (standPatEval >= beta) return beta;
       alpha = standPatEval;
     }
 
-    int currentMoveCount = MoveGen.genCaptures(board, searchMoves[ply], 0);
+    if (stopSearch) return 0;
+
+    int currentMoveCount = MoveGen.genPseudoLegalCaptures(board, searchMoves[ply], 0);
+
+    for (int i = 0; i < currentMoveCount; i++) {
+      if (Move.special(searchMoves[ply][i].move) == SPECIAL_EP) {
+        // If the move is en passant we know the captured pieces and capturer are both pawns, so
+        // just take the pawn value on both (doesn't matter which color since the value is the same)
+        searchMoves[ply][i].score =
+            256 * Evaluation.PIECE_ABS_VALUE[WP] - Evaluation.PIECE_ABS_VALUE[WP];
+      } else {
+        searchMoves[ply][i].score =
+            256 * Evaluation.PIECE_ABS_VALUE[board.board[Move.to(searchMoves[ply][i].move)]]
+                - Evaluation.PIECE_ABS_VALUE[board.board[Move.from(searchMoves[ply][i].move)]];
+      }
+    }
+
+    sortMoves(searchMoves[ply], 0, currentMoveCount);
 
     for (int i = 0; i < currentMoveCount; i++) {
 
       board.make(searchMoves[ply][i].move);
+
+      // Since we're using pseudolegal captures, need to check if the side that just made a move
+      // is now in check, if so the move is not legal so skip searching it
+      if (board.isInCheck(board.toMove == WHITE ? BLACK : WHITE)) {
+        board.unmake(searchMoves[ply][i].move);
+        continue;
+      }
+
       nodesSearched++;
 
       eval = -quiesce(board, -beta, -alpha, ply + 1);
@@ -385,7 +431,9 @@ public class Search {
   }
 
   public static boolean shouldWeStop() {
-    if (!ponder && ((System.currentTimeMillis() - startTime) > timeForThisMove)) return true;
+    if (!ponder && ((System.currentTimeMillis() - startTime) > timeForThisMove)) {
+      return true;
+    }
 
     try {
       if (Uci.reader.ready()) {
@@ -401,6 +449,18 @@ public class Search {
     }
 
     return false;
+  }
+
+  private static void sortMoves(Move[] moves, int from, int to) {
+    for (int i = from + 1; i < to; i++) {
+      int j = i;
+      Move B = moves[i];
+      while ((j > from) && (moves[j - 1].score < B.score)) {
+        moves[j] = moves[j - 1];
+        j--;
+      }
+      moves[j] = B;
+    }
   }
 
   private static int calculateTime(int timeLeft, int increment) {

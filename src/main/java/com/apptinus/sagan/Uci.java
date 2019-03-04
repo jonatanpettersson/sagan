@@ -37,9 +37,7 @@ public class Uci {
       System.out.print("\n->");
       String command = reader.readLine();
 
-      if (command.equals("xboard")) {
-        System.out.println("The xboard protocol is not supported as of v0.4 of Mediocre");
-      } else if (command.equals("uci")) {
+      if (command.equals("uci")) {
         uci();
         break;
       } else if ("quit".equals(command)) {
@@ -333,6 +331,7 @@ public class Uci {
       // opponent made a move this will have been caught in the 'position'
       // string
       if (command.startsWith("go")) {
+        System.out.println("Received go at" + System.currentTimeMillis());
         int wtime = 0; // Initialize the times
         int btime = 0;
         int winc = 0;

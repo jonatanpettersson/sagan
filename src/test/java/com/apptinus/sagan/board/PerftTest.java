@@ -102,6 +102,7 @@ public class PerftTest {
 
   private boolean validatePosition(PerftTestPos perftTestPos) {
     Board board = new Board();
+    MoveGen.init();
     /* Check all the positions to the given depth */
     long startTot = System.currentTimeMillis();
     System.out.println(perftTestPos.getName());
