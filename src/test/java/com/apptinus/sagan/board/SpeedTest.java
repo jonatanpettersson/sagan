@@ -72,7 +72,7 @@ public class SpeedTest {
     for (String pos : positionsMiddle) {
       BoardUtil.setFen(board, pos);
       long thisTime = System.currentTimeMillis();
-      Search.search(board, DEPTH, 0, 0, 0, false);
+      Search.search(board, new SearchSupervisor(DEPTH, 0, 0, 0, false));
       logger.debug(
           "Position "
               + (++count)
@@ -97,7 +97,7 @@ public class SpeedTest {
 
       BoardUtil.setFen(board, pos);
       long thisTime = System.currentTimeMillis();
-      Search.search(board, DEPTH, 0, 0, 0, false);
+      Search.search(board, new SearchSupervisor(DEPTH, 0, 0, 0, false));
       logger.debug(
           "Position "
               + (++count)

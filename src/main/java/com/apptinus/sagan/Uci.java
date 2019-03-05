@@ -8,6 +8,7 @@ import com.apptinus.sagan.board.Evaluation;
 import com.apptinus.sagan.board.Move;
 import com.apptinus.sagan.board.MoveGen;
 import com.apptinus.sagan.board.Search;
+import com.apptinus.sagan.board.SearchSupervisor;
 import com.apptinus.sagan.util.BoardUtil;
 import com.apptinus.sagan.util.Perft;
 import java.io.BufferedReader;
@@ -77,11 +78,11 @@ public class Uci {
           System.out.println("Missing option. Needs d (depth) or t (time).");
         } else if (commands[2].equals("t")) {
           long time = System.currentTimeMillis();
-          Search.search(board, 0, 0, 0, Integer.parseInt(commands[1]), false);
+          Search.search(board, new SearchSupervisor(0, 0, 0, Integer.parseInt(commands[1]), false));
           System.out.println("Time: " + Perft.convertMillis((System.currentTimeMillis() - time)));
         } else if (commands[2].equals("d")) {
           long time = System.currentTimeMillis();
-          Search.search(board, Integer.parseInt(commands[1]), 0, 0, 0, false);
+          Search.search(board, new SearchSupervisor(Integer.parseInt(commands[1]), 0, 0, 0, false));
           System.out.println("Time: " + Perft.convertMillis((System.currentTimeMillis() - time)));
         }
       } else if (command.equals("eval")) {
@@ -407,7 +408,10 @@ public class Uci {
         Search.Eval bestLine = new Search.Eval();
 
         try {
-          bestLine = Search.search(board, searchDepth, engineTime, engineInc, movetime, ponder);
+          bestLine =
+              Search.search(
+                  board,
+                  new SearchSupervisor(searchDepth, engineTime, engineInc, movetime, ponder));
         } catch (Exception e) {
           logger.error("Error while searching", e);
         }

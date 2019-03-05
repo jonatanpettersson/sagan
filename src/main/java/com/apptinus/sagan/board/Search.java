@@ -6,15 +6,11 @@ import static com.apptinus.sagan.board.Move.SPECIAL_EP;
 import static com.apptinus.sagan.board.Move.WHITE;
 
 import ch.qos.logback.classic.Logger;
-import com.apptinus.sagan.Uci;
-import com.apptinus.sagan.util.BoardUtil;
-import java.io.IOException;
 import org.slf4j.LoggerFactory;
 
 public class Search {
   private static Logger logger = (Logger) LoggerFactory.getLogger(Search.class);
 
-  public static final int TIME_CHECK_INTERVAL = 10000;
   public static final int PLY = 16;
   public static final int MATE_VALUE = -31999;
   public static final int MATE_BOUND = 31000;
@@ -25,41 +21,36 @@ public class Search {
   private static Eval finalEval;
   private static Move[][] searchMoves;
 
+  //  private static boolean stopSearch;
   private static int totalNodesSearched;
-  private static long startTime;
-  private static boolean stopSearch;
-  private static int timeForThisMove;
-  private static int nextTimeCheck;
-  private static boolean useFixedDepth;
-  private static boolean ponder;
   private static int nodesSearched;
   private static int rootMovesCount;
 
   public static int currentDepth;
 
-  public static Eval search(
-      Board board, int depth, int timeLeft, int increment, int movetime, boolean isPonder) {
-    startTime = System.currentTimeMillis();
+  public static SearchSupervisor supervisor;
+
+  public static Eval search(Board board, SearchSupervisor searchSupervisor) {
+    supervisor = searchSupervisor;
+
+    // Inits
     finalEval = new Eval();
     searchMoves = new Move[64][256];
     for (int i = 0; i < searchMoves.length; i++)
       for (int j = 0; j < searchMoves[i].length; j++) searchMoves[i][j] = new Move();
-
     if (MoveGen.genMoves(board, searchMoves[0], 0) == 0) return finalEval;
     totalNodesSearched = 0;
-    stopSearch = false;
-    if (movetime == 0) timeForThisMove = calculateTime(timeLeft, increment);
-    else timeForThisMove = movetime;
-    nextTimeCheck = TIME_CHECK_INTERVAL;
-    useFixedDepth = depth != 0;
-    ponder = isPonder;
-
     nodesSearched = 0;
+
+    return iterativeSearch(board);
+  }
+
+  private static Eval iterativeSearch(Board board) {
 
     rootMovesCount = MoveGen.genMoves(board, searchMoves[0], 0);
     for (int i = 0; i < rootMovesCount; i++) {
       board.make(searchMoves[0][i].move);
-      searchMoves[0][i].score = -alphaBeta(board, 1 * PLY, -INFINITY, INFINITY, 1);
+      searchMoves[0][i].score = -alphaBeta(board, PLY, -INFINITY, INFINITY, 1);
       board.unmake(searchMoves[0][i].move);
     }
 
@@ -70,10 +61,10 @@ public class Search {
 
     // Iterative deepening
     for (currentDepth = 1; currentDepth <= 64; ) {
-      Move bestMove = alphaBetaRoot(board, currentDepth * PLY, alpha, beta, 0);
+      Move bestMove = alphaBetaRoot(board, currentDepth * PLY, alpha, beta);
       int eval = bestMove.score;
 
-      if (stopSearch) {
+      if (supervisor.checkShouldStop()) {
         break;
       }
 
@@ -111,7 +102,7 @@ public class Search {
       finalEval = new Eval(new int[128], eval);
       finalEval.line[0] = bestMove.move;
 
-      System.out.println(receiveThinking(startTime, finalEval)); // Get a thinking string and send
+      supervisor.reportThinkingLine(currentDepth, totalNodesSearched, finalEval);
 
       alpha = eval - 60; // Get ready for a new search, with a new window
       beta = eval + 60; // The current window equals 3/10 of a pawn
@@ -121,19 +112,8 @@ public class Search {
       if (alpha <= -INFINITY) alpha = -INFINITY;
       if (beta >= INFINITY) beta = INFINITY;
 
-      if (!ponder) {
-        if (useFixedDepth) {
-          if (currentDepth == depth || eval == -(MATE_VALUE + 1)) break;
-        } else if (movetime != 0) {
-          if (System.currentTimeMillis() - startTime > timeForThisMove || eval == -(MATE_VALUE + 1))
-            break; // We have reached the allocated time or found a mate, and exit
-        } else {
-          // If we used 90% of the time so far, we break here
-          if (System.currentTimeMillis() - startTime > timeForThisMove * 0.9
-              || eval == -(MATE_VALUE + 1)) {
-            break; // We have reached the allocated time or found a mate, and exit
-          }
-        }
+      if (supervisor.shouldRootStop(eval, currentDepth)) {
+        break;
       }
       currentDepth++; // Go to the next depth
     }
@@ -141,10 +121,10 @@ public class Search {
     return finalEval;
   }
 
-  public static Move alphaBetaRoot(Board board, int depth, int alpha, int beta, int ply) {
+  private static Move alphaBetaRoot(Board board, int depth, int alpha, int beta) {
     Move bestMove = new Move();
 
-    int eval = 0;
+    int eval;
     int currentBestEval = -INFINITY;
     int searchedMoves = 0;
 
@@ -152,24 +132,15 @@ public class Search {
 
     for (int i = 0; i < rootMovesCount; i++) {
 
-      board.make(searchMoves[ply][i].move);
+      board.make(searchMoves[0][i].move);
 
-      // Report what move we're looking at currently
-      if ((depth / PLY > 10
-          && !stopSearch
-          && timeForThisMove > 1000
-          && System.currentTimeMillis() - startTime > timeForThisMove * 0.5)) {
-        System.out.println(
-            "info currmove "
-                + BoardUtil.moveToNotation(searchMoves[ply][i].move)
-                + " currmovenumber "
-                + searchedMoves);
-      }
-      eval = -alphaBeta(board, depth - PLY, -beta, -alpha, ply + 1);
+      supervisor.reportThinkingCurrentMove(searchMoves[0][i].move, searchedMoves);
+
+      eval = -alphaBeta(board, depth - PLY, -beta, -alpha, 1);
 
       searchedMoves++;
 
-      board.unmake(searchMoves[ply][i].move);
+      board.unmake(searchMoves[0][i].move);
 
       totalNodesSearched += nodesSearched;
       nodesSearched = 0;
@@ -179,7 +150,7 @@ public class Search {
 
         // If the evaluation is bigger than alpha (but less than beta) this is our new best move
         if (eval > alpha) {
-          bestMove = searchMoves[ply][i];
+          bestMove = searchMoves[0][i];
           alpha = eval;
         }
       }
@@ -187,28 +158,18 @@ public class Search {
 
     // If there wasn't a legal move, it's either stalemate or checkmate
     if (searchedMoves == 0) {
-      if (board.isInCheck(board.toMove)) bestMove.score = (MATE_VALUE + ply);
+      if (board.isInCheck(board.toMove)) bestMove.score = MATE_VALUE;
       else bestMove.score = DRAW_VALUE;
     }
 
     return bestMove;
   }
 
-  public static int alphaBeta(Board board, int depth, int alpha, int beta, int ply) {
-    int bestMove = 0; // Initialize the best move
-    int eval = 0; // Initialize the eval
+  private static int alphaBeta(Board board, int depth, int alpha, int beta, int ply) {
+    int bestMove = 0;
+    int eval;
 
-    // Check if we've run out of time
-    if (!useFixedDepth) {
-      nextTimeCheck--;
-      if (nextTimeCheck == 0) {
-        nextTimeCheck = TIME_CHECK_INTERVAL;
-        if (shouldWeStop()) {
-          stopSearch = true;
-          return 0;
-        }
-      }
-    }
+    if (supervisor.checkShouldStop()) return 0;
 
     // If we're not in a root node and there's a threefold repetition detected, or the fifty move
     // rule is reached (in any node) return draw
@@ -229,14 +190,12 @@ public class Search {
       return quiesce(board, alpha, beta, ply);
     }
 
-    if (stopSearch) return 0; // Stop the search if it's been detected
+    if (supervisor.shouldStopDetected()) return 0;
 
     int bestEval = -INFINITY;
     int searchedMoves = 0;
-    int currentMovesCount = 0;
+    int currentMovesCount;
     int startIndex = 0;
-
-    int materialEval = 0;
 
     currentMovesCount = MoveGen.genMoves(board, searchMoves[ply], 0);
 
@@ -301,16 +260,7 @@ public class Search {
   private static int quiesce(Board board, int alpha, int beta, int ply) {
     int eval;
 
-    if (!useFixedDepth) {
-      nextTimeCheck--;
-      if (nextTimeCheck == 0) {
-        nextTimeCheck = TIME_CHECK_INTERVAL;
-        if (shouldWeStop()) {
-          stopSearch = true;
-          return 0;
-        }
-      }
-    }
+    if (supervisor.checkShouldStop()) return 0;
 
     int standPatEval = Evaluation.evaluate(board);
     if (standPatEval > alpha) {
@@ -318,7 +268,7 @@ public class Search {
       alpha = standPatEval;
     }
 
-    if (stopSearch) return 0;
+    if (supervisor.shouldStopDetected()) return 0;
 
     int currentMoveCount = MoveGen.genPseudoLegalCaptures(board, searchMoves[ply], 0);
 
@@ -363,96 +313,6 @@ public class Search {
     return alpha;
   }
 
-  private static String receiveThinking(long time, Eval finalEval) {
-    // Built the pv line
-    String pvString = "";
-    for (int i = 0; i < 128; i++) {
-      if (i == 0) {
-        pvString += (BoardUtil.moveToNotation(finalEval.line[0]) + " ");
-      } else if (finalEval.line[i] == 0) break;
-      else pvString += (BoardUtil.moveToNotation(finalEval.line[i]) + " ");
-    }
-
-    // Calculate the nodes per second, we need decimal values
-    // to get the most accurate result.
-    // If we have searched less than 1 second return the nodesSearched
-    // since the numbers tend to get crazy at lower times
-
-    long splitTime = (System.currentTimeMillis() - time);
-    int nps;
-    if ((splitTime / 1000) < 1) nps = totalNodesSearched;
-    else {
-      Double decimalTime = new Double(totalNodesSearched / (splitTime / 1000D));
-      nps = decimalTime.intValue();
-    }
-
-    // Send the info to the uci interface
-    if (finalEval.eval >= MATE_BOUND) {
-      int rest = ((-MATE_VALUE) - finalEval.eval) % 2;
-      int mateInN = (((-MATE_VALUE) - finalEval.eval) - rest) / 2 + rest;
-      return "info score mate "
-          + mateInN
-          + " depth "
-          + currentDepth
-          + " nodes "
-          + totalNodesSearched
-          + " nps "
-          + nps
-          + " time "
-          + splitTime
-          + " pv "
-          + pvString;
-    } else if (finalEval.eval <= -MATE_BOUND) {
-      int rest = ((-MATE_VALUE) + finalEval.eval) % 2;
-      int mateInN = (((-MATE_VALUE) + finalEval.eval) - rest) / 2 + rest;
-      return "info score mate "
-          + -mateInN
-          + " depth "
-          + currentDepth
-          + " nodes "
-          + totalNodesSearched
-          + " nps "
-          + nps
-          + " time "
-          + splitTime
-          + " pv "
-          + pvString;
-    }
-    return "info score cp "
-        + finalEval.eval
-        + " depth "
-        + currentDepth
-        + " nodes "
-        + totalNodesSearched
-        + " nps "
-        + nps
-        + " time "
-        + splitTime
-        + " pv "
-        + pvString;
-  }
-
-  public static boolean shouldWeStop() {
-    if (!ponder && ((System.currentTimeMillis() - startTime) > timeForThisMove)) {
-      return true;
-    }
-
-    try {
-      if (Uci.reader.ready()) {
-        String line = Uci.reader.readLine();
-        if ("stop".equals(line)) return true;
-        if ("ponderhit".equals(line)) {
-          ponder = false;
-        }
-      }
-    } catch (IOException e) {
-      // Some error with the UCI connection, so better just stop
-      return true;
-    }
-
-    return false;
-  }
-
   private static void sortMoves(Move[] moves, int from, int to) {
     for (int i = from + 1; i < to; i++) {
       int j = i;
@@ -463,24 +323,6 @@ public class Search {
       }
       moves[j] = B;
     }
-  }
-
-  private static int calculateTime(int timeLeft, int increment) {
-    int timeForThisMove; // The maximum time we are allowed to use on this move
-    int percent =
-        40; // How many percent of the time we will use; percent=20 -> 5%, percent=40 -> 2.5% etc.
-    // (formula is 100/percent, i.e. 100/40 =2.5)
-
-    timeForThisMove = timeLeft / percent + (increment); // Use the percent + increment for the move
-    if (timeForThisMove >= timeLeft)
-      timeForThisMove =
-          timeLeft
-              - 500; // If the increment puts us above the total time left use the timeleft - 0.5
-    // seconds
-    if (timeForThisMove < 0)
-      timeForThisMove = 100; // If 0.5 seconds puts us below 0 use 0.1 seconds
-
-    return timeForThisMove;
   }
 
   public static class Eval {
