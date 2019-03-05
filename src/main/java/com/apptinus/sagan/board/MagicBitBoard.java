@@ -3,6 +3,7 @@ package com.apptinus.sagan.board;
 import static com.apptinus.sagan.util.Bitops.setBit;
 
 import com.apptinus.sagan.util.Bitops;
+import com.apptinus.sagan.util.BoardUtil;
 import java.util.Random;
 
 /**
@@ -305,7 +306,7 @@ public class MagicBitBoard {
     int index;
 
     for (square = 0; square <= 63; square++) {
-      System.out.println("Calculating " + Board.squareToNotation(square));
+      System.out.println("Calculating " + BoardUtil.squareToNotation(square));
       int bitCount = Bitops.population(deltas[square]);
       variationCount = (int) (1L << bitCount);
       boolean fail;

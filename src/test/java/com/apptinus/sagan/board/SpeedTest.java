@@ -1,5 +1,6 @@
 package com.apptinus.sagan.board;
 
+import com.apptinus.sagan.util.BoardUtil;
 import com.apptinus.sagan.util.Perft;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
@@ -31,7 +32,7 @@ public class SpeedTest {
   }
 
   private void loadMiddle() throws Exception {
-    positionsMiddle = new ArrayList<String>();
+    positionsMiddle = new ArrayList<>();
     URL url = this.getClass().getResource(TEST_SET_MIDDLE);
     File testSetFile = new File(url.getFile());
     FileInputStream fstream = new FileInputStream(testSetFile);
@@ -47,7 +48,7 @@ public class SpeedTest {
   }
 
   private void loadEnding() throws Exception {
-    positionsEnding = new ArrayList<String>();
+    positionsEnding = new ArrayList<>();
     URL url = this.getClass().getResource(TEST_SET_ENDING);
     File testSetFile = new File(url.getFile());
     FileInputStream fstream = new FileInputStream(testSetFile);
@@ -63,13 +64,13 @@ public class SpeedTest {
   }
 
   @Test
-  public void speedTestMiddle() throws IOException {
+  public void speedTestMiddle() {
     Board board = new Board();
 
     long totalTime = System.currentTimeMillis();
     int count = 0;
     for (String pos : positionsMiddle) {
-      board.setFen(pos);
+      BoardUtil.setFen(board, pos);
       long thisTime = System.currentTimeMillis();
       Search.search(board, DEPTH, 0, 0, 0, false);
       logger.debug(
@@ -87,14 +88,14 @@ public class SpeedTest {
   }
 
   @Test
-  public void speedTestEnding() throws IOException {
+  public void speedTestEnding() {
     Board board = new Board();
 
     long totalTime = System.currentTimeMillis();
     int count = 0;
     for (String pos : positionsEnding) {
 
-      board.setFen(pos);
+      BoardUtil.setFen(board, pos);
       long thisTime = System.currentTimeMillis();
       Search.search(board, DEPTH, 0, 0, 0, false);
       logger.debug(

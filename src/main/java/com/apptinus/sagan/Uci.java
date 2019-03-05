@@ -8,6 +8,7 @@ import com.apptinus.sagan.board.Evaluation;
 import com.apptinus.sagan.board.Move;
 import com.apptinus.sagan.board.MoveGen;
 import com.apptinus.sagan.board.Search;
+import com.apptinus.sagan.util.BoardUtil;
 import com.apptinus.sagan.util.Perft;
 import java.io.BufferedReader;
 import java.io.File;
@@ -29,7 +30,8 @@ public class Uci {
     logger.debug("Enter line input");
     String testsetPath = null;
     Board board = new Board(); // Create
-    board.setFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"); // Start position
+    BoardUtil.setFen(board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"); // Start
+    // position
 
     System.out.println("\nWelcome to Sagan " + Main.VERSION + ". Type 'help' for commands.");
     for (; ; ) {
@@ -46,7 +48,7 @@ public class Uci {
       } else if (command.startsWith("help")) {
         displayHelp(command);
       } else if (command.startsWith("setboard ")) {
-        board.setFen(command.substring(9)); // Insert the submitted position
+        BoardUtil.setFen(board, command.substring(9)); // Insert the submitted position
       } else if (command.startsWith("testset")) {
 
         if (!(new File(command.split(" ")[1])).exists()) {
@@ -190,7 +192,8 @@ public class Uci {
     logger.debug("Enter UCI protocol");
     Board board = new Board(); // Create a board on which we will be
     // playing
-    board.setFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"); // Start position
+    BoardUtil.setFen(board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"); // Start
+    // position
 
     boolean useBook = false;
     boolean defaultPonder = false;
@@ -289,7 +292,8 @@ public class Uci {
         if (command.indexOf("startpos") != -1) // Start position
         {
           openingLine = ""; // Initialize opening line
-          board.setFen(
+          BoardUtil.setFen(
+              board,
               "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"); // Insert start position
         } else // Fen string
         {
@@ -303,7 +307,7 @@ public class Uci {
           if (!"".equals(fen)) // If fen == "" there was an error
           // in the position-string
           {
-            board.setFen(fen); // Insert the FEN
+            BoardUtil.setFen(board, fen); // Insert the FEN
           }
         }
 
@@ -415,11 +419,11 @@ public class Uci {
           if (defaultPonder & bestLine.line[1] != 0) {
             System.out.println(
                 "bestmove "
-                    + (Board.moveToNotation(bestLine.line[0]))
+                    + (BoardUtil.moveToNotation(bestLine.line[0]))
                     + " ponder "
-                    + (Board.moveToNotation(bestLine.line[1])));
+                    + (BoardUtil.moveToNotation(bestLine.line[1])));
           } else {
-            System.out.println("bestmove " + (Board.moveToNotation(bestLine.line[0])));
+            System.out.println("bestmove " + (BoardUtil.moveToNotation(bestLine.line[0])));
           }
         }
       }
@@ -466,7 +470,6 @@ public class Uci {
    *
    * <p>Originally written by Yves Catineau and modified by Jonatan Pettersson
    *
-   * @param parameters The 'position' string
    * @return moves The last part of 'position' that contains the moves
    */
   private static String[] extractMoves(String position) {
@@ -494,7 +497,7 @@ public class Uci {
     int totalMoves = MoveGen.genMoves(board, legalMoves, 0); // All moves
 
     for (int i = 0; i < totalMoves; i++) {
-      if (Board.moveToNotation(legalMoves[i].move).equals(move)) {
+      if (BoardUtil.moveToNotation(legalMoves[i].move).equals(move)) {
         return legalMoves[i].move;
       }
     }

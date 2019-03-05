@@ -2,6 +2,7 @@ package com.apptinus.sagan.board;
 
 import static org.junit.Assert.assertEquals;
 
+import com.apptinus.sagan.util.BoardUtil;
 import com.apptinus.sagan.util.Perft;
 import org.junit.Test;
 
@@ -13,7 +14,7 @@ public class PerftTest {
   //  @Test
   public void testSpecific() {
     Board board = new Board();
-    board.setFen("r3k2r/p1p1qpb1/bn1ppnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R4RK1 w kq -");
+    BoardUtil.setFen(board, "r3k2r/p1p1qpb1/bn1ppnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R4RK1 w kq -");
     Perft.perft(board, 2, true);
   }
 
@@ -109,7 +110,7 @@ public class PerftTest {
     boolean allDepthsCorrect = true;
     for (int i = 1; i < maxDepth && i < perftTestPos.answerLength(); i++) {
       if (perftTestPos.getAnswerAtDepth(i) != -1L && perftTestPos.getAnswerAtDepth(i) < maxPly) {
-        board.setFen(perftTestPos.getFen());
+        BoardUtil.setFen(board, perftTestPos.getFen());
         long start = System.currentTimeMillis();
         long answer = Perft.perft(board, i, true);
         StringBuilder sb = new StringBuilder();

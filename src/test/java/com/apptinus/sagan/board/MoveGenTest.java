@@ -2,6 +2,7 @@ package com.apptinus.sagan.board;
 
 import static org.junit.Assert.assertEquals;
 
+import com.apptinus.sagan.util.BoardUtil;
 import org.junit.Test;
 
 public class MoveGenTest {
@@ -9,8 +10,8 @@ public class MoveGenTest {
   //  @Test
   public void testGenPrint() {
     Board board = new Board();
-    board.setFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-    //    board.setFen("8/6k1/3R4/8/8/2K5/8/8 w - -");
+    BoardUtil.setFen(board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    //    BoardUtil.setFen(board, "8/6k1/3R4/8/8/2K5/8/8 w - -");
 
     Move[] moves = new Move[256];
     for (int i = 0; i < 256; i++) moves[i] = new Move();
@@ -20,7 +21,7 @@ public class MoveGenTest {
     for (int moveIdx = 0; moveIdx < movesTotal; moveIdx++) {
       int move = moves[moveIdx].move;
       System.out.println(
-          Board.squareToNotation(Move.from(move)) + "" + Board.squareToNotation(Move.to(move)));
+          BoardUtil.squareToNotation(Move.from(move)) + "" + BoardUtil.squareToNotation(Move.to(move)));
     }
   }
 
@@ -32,15 +33,15 @@ public class MoveGenTest {
     Move[] moves = new Move[256];
     for (int i = 0; i < 256; i++) moves[i] = new Move();
 
-    board.setFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    BoardUtil.setFen(board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     assertEquals(20, MoveGen.genMoves(board, moves, 0));
     assertEquals(0, MoveGen.genPseudoLegalCaptures(board, moves, 0));
 
-    board.setFen("8/6k1/3R4/8/8/2K5/8/8 w - -");
+    BoardUtil.setFen(board, "8/6k1/3R4/8/8/2K5/8/8 w - -");
     assertEquals(22, MoveGen.genMoves(board, moves, 0));
     assertEquals(0, MoveGen.genPseudoLegalCaptures(board, moves, 0));
 
-    board.setFen("8/6k1/3R1r2/8/8/2K5/3r4/8 w - -");
+    BoardUtil.setFen(board, "8/6k1/3R1r2/8/8/2K5/3r4/8 w - -");
     assertEquals(15, MoveGen.genMoves(board, moves, 0));
     assertEquals(3, MoveGen.genPseudoLegalCaptures(board, moves, 0));
   }

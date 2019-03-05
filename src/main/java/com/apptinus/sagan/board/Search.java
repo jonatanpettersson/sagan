@@ -7,7 +7,7 @@ import static com.apptinus.sagan.board.Move.WHITE;
 
 import ch.qos.logback.classic.Logger;
 import com.apptinus.sagan.Uci;
-import com.apptinus.sagan.util.Perft;
+import com.apptinus.sagan.util.BoardUtil;
 import java.io.IOException;
 import org.slf4j.LoggerFactory;
 
@@ -148,7 +148,7 @@ public class Search {
     int currentBestEval = -INFINITY;
     int searchedMoves = 0;
 
-    sortMoves(searchMoves[0], depth/PLY==1 ? 0 : 1, rootMovesCount);
+    sortMoves(searchMoves[0], depth / PLY == 1 ? 0 : 1, rootMovesCount);
 
     for (int i = 0; i < rootMovesCount; i++) {
 
@@ -161,7 +161,7 @@ public class Search {
           && System.currentTimeMillis() - startTime > timeForThisMove * 0.5)) {
         System.out.println(
             "info currmove "
-                + Board.moveToNotation(searchMoves[ply][i].move)
+                + BoardUtil.moveToNotation(searchMoves[ply][i].move)
                 + " currmovenumber "
                 + searchedMoves);
       }
@@ -368,9 +368,9 @@ public class Search {
     String pvString = "";
     for (int i = 0; i < 128; i++) {
       if (i == 0) {
-        pvString += (Board.moveToNotation(finalEval.line[0]) + " ");
+        pvString += (BoardUtil.moveToNotation(finalEval.line[0]) + " ");
       } else if (finalEval.line[i] == 0) break;
-      else pvString += (Board.moveToNotation(finalEval.line[i]) + " ");
+      else pvString += (BoardUtil.moveToNotation(finalEval.line[i]) + " ");
     }
 
     // Calculate the nodes per second, we need decimal values
