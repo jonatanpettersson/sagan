@@ -119,6 +119,7 @@ public class Search {
     Move bestMove = new Move();
 
     int eval;
+    int evalType = Tt.UPPER_BOUND;
     int currentBestEval = -INFINITY;
     int searchedMoves = 0;
 
@@ -145,6 +146,7 @@ public class Search {
         if (eval > alpha) {
           bestMove = searchMoves[0][i];
           alpha = eval;
+          evalType = Tt.EXACT;
         }
       }
     }
@@ -155,6 +157,8 @@ public class Search {
       else bestMove.score = DRAW_VALUE;
     }
 
+    board.tt.set(board.zobrist, currentDepth, evalType, currentBestEval, bestMove.move);
+
     return bestMove;
   }
 
@@ -164,6 +168,18 @@ public class Search {
 
     if (supervisor.checkShouldStop()) return 0;
     if (depth / PLY != currentDepth && board.isDraw()) return DRAW_VALUE;
+
+    if (board.tt.probe(board.zobrist)) {
+      if (board.tt.getProbedDepth() >= depth / PLY) {
+        if ((board.tt.getProbedEvalType() == Tt.EXACT)
+            || (board.tt.getProbedEvalType() == Tt.UPPER_BOUND && board.tt.getProbedEval() <= alpha)
+            || (board.tt.getProbedEvalType() == Tt.LOWER_BOUND
+                && board.tt.getProbedEval() >= beta)) {
+          searchMoves[ply][0].move = board.tt.getProbedMove();
+          return board.tt.getProbedEval();
+        }
+      }
+    }
 
     boolean isInCheck = board.isInCheck(board.toMove);
     if (isInCheck) {
@@ -177,6 +193,7 @@ public class Search {
 
     if (supervisor.shouldStopDetected()) return 0;
 
+    int evalType = Tt.UPPER_BOUND;
     int bestEval = -INFINITY;
     int searchedMoves = 0;
     int currentMovesCount;
@@ -215,6 +232,7 @@ public class Search {
 
         if (eval >= beta) {
           searchMoves[ply][0].move = searchMoves[ply][i].move;
+          board.tt.set(board.zobrist, depth / PLY, Tt.LOWER_BOUND, eval, searchMoves[ply][i].move);
           return eval;
         }
 
@@ -223,6 +241,7 @@ public class Search {
         // If the evaluation is bigger than alpha (but less than beta) this is our new best move
         if (eval > alpha) {
           bestMove = searchMoves[ply][i].move;
+          evalType = Tt.EXACT;
           alpha = eval;
         }
       }
@@ -238,6 +257,7 @@ public class Search {
     }
 
     searchMoves[ply][0].move = bestMove;
+    board.tt.set(board.zobrist, depth / PLY, evalType, bestEval, bestMove);
 
     return alpha;
   }

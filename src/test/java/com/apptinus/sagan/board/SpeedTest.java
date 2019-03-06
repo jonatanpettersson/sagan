@@ -19,7 +19,8 @@ import org.slf4j.LoggerFactory;
 public class SpeedTest {
   private static Logger logger = LoggerFactory.getLogger(SpeedTest.class);
 
-  private static final int DEPTH = 3;
+  private static final int DEPTH_MIDDLE = 4;
+  private static final int DEPTH_ENDING = 6;
   private static final String TEST_SET_MIDDLE = "/speedtestmiddle";
   private static final String TEST_SET_ENDING = "/speedtestending";
   private List<String> positionsMiddle;
@@ -29,6 +30,7 @@ public class SpeedTest {
   public void setUp() throws Exception {
     loadMiddle();
     loadEnding();
+    MoveGen.init();
   }
 
   private void loadMiddle() throws Exception {
@@ -72,7 +74,7 @@ public class SpeedTest {
     for (String pos : positionsMiddle) {
       board = BoardUtil.createBoard(pos);
       long thisTime = System.currentTimeMillis();
-      Search.search(board, new SearchSupervisor(DEPTH, 0, 0, 0, false));
+      Search.search(board, new SearchSupervisor(DEPTH_MIDDLE, 0, 0, 0, false));
       logger.debug(
           "Position "
               + (++count)
@@ -97,7 +99,7 @@ public class SpeedTest {
 
       board = BoardUtil.createBoard(pos);
       long thisTime = System.currentTimeMillis();
-      Search.search(board, new SearchSupervisor(DEPTH, 0, 0, 0, false));
+      Search.search(board, new SearchSupervisor(DEPTH_ENDING, 0, 0, 0, false));
       logger.debug(
           "Position "
               + (++count)

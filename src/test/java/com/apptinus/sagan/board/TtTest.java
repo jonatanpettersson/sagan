@@ -18,7 +18,7 @@ public class TtTest {
     assertTrue(tt.probe(Long.MAX_VALUE));
 
     assertEquals(63, tt.getProbedDepth());
-    assertEquals(3, tt.getProbedFlag());
+    assertEquals(3, tt.getProbedEvalType());
     assertEquals(Search.INFINITY, tt.getProbedEval());
     assertEquals(Move.m(63, 62, 3, 3), tt.getProbedMove());
 
@@ -28,7 +28,7 @@ public class TtTest {
     assertTrue(tt.probe(0L));
 
     assertEquals(0, tt.getProbedDepth());
-    assertEquals(0, tt.getProbedFlag());
+    assertEquals(0, tt.getProbedEvalType());
     assertEquals(-Search.INFINITY, tt.getProbedEval());
     assertEquals(Move.m(0, 1, 0, 0), tt.getProbedMove());
   }
