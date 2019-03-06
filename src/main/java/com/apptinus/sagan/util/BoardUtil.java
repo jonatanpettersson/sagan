@@ -22,33 +22,44 @@ import static com.apptinus.sagan.board.Move.WHITE;
 import static com.apptinus.sagan.util.Bitops.isSet;
 import static com.apptinus.sagan.util.Bitops.set;
 
+import com.apptinus.sagan.Main;
 import com.apptinus.sagan.board.Board;
 import com.apptinus.sagan.board.Move;
+import com.apptinus.sagan.board.Tt;
 import java.util.Collections;
 
 public class BoardUtil {
-  public static void clear(Board board) {
-    board.board = new int[64];
-    board.pieces = new long[12];
 
-    board.history = new int[1024];
-
-    board.wPieces = 0L;
-    board.bPieces = 0L;
-    board.allPieces = 0L;
-
-    board.wCastle = 0;
-    board.bCastle = 0;
-    board.toMove = WHITE;
-    board.ep = -1;
-    board.fPly = 0;
-    board.ply = 0;
+  public static Board createStartPosBoard() {
+    return createStartPosBoard(Main.DEFAULT_TT_SIZE_MB);
   }
 
-  public static void setFen(Board board, String fen) {
-    // Note: Unpredictable results if fen is malformed (no sanity checking at all)
+  public static Board createStartPosBoard(int ttSizeMb) {
+    return createBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", ttSizeMb);
+  }
 
-    clear(board);
+  public static Board createStartPosBoard(Tt tt) {
+    return createBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", tt);
+  }
+
+  public static Board createBoard(String fen) {
+    return createBoard(fen, Main.DEFAULT_TT_SIZE_MB);
+  }
+
+  public static Board createBoard(String fen, int ttSizeMb) {
+    Board board = new Board(ttSizeMb);
+    setFen(board, fen);
+    return board;
+  }
+
+  public static Board createBoard(String fen, Tt tt) {
+    Board board = new Board(tt);
+    setFen(board, fen);
+    return board;
+  }
+
+  private static Board setFen(Board board, String fen) {
+    // Note: Unpredictable results if fen is malformed (no sanity checking at all)
 
     fen = fen.trim();
 
@@ -149,20 +160,22 @@ public class BoardUtil {
     } while (i < fs[0].length() - 1);
 
     board.wPieces |=
-        board.pieces[WK]
-            | board.pieces[WQ]
-            | board.pieces[WR]
-            | board.pieces[WB]
-            | board.pieces[WN]
-            | board.pieces[WP];
+      board.pieces[WK]
+      | board.pieces[WQ]
+      | board.pieces[WR]
+      | board.pieces[WB]
+      | board.pieces[WN]
+      | board.pieces[WP];
     board.bPieces |=
-        board.pieces[BK]
-            | board.pieces[BQ]
-            | board.pieces[BR]
-            | board.pieces[BB]
-            | board.pieces[BN]
-            | board.pieces[BP];
+      board.pieces[BK]
+      | board.pieces[BQ]
+      | board.pieces[BR]
+      | board.pieces[BB]
+      | board.pieces[BN]
+      | board.pieces[BP];
     board.allPieces |= board.wPieces | board.bPieces;
+
+    return board;
   }
 
   public static String getFen(Board board) {

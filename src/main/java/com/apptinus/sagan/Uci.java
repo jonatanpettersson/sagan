@@ -30,8 +30,7 @@ public class Uci {
   public static void lineInput() throws IOException {
     logger.debug("Enter line input");
     String testsetPath = null;
-    Board board = new Board(); // Create
-    BoardUtil.setFen(board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"); // Start
+    Board board = BoardUtil.createStartPosBoard();
     // position
 
     System.out.println("\nWelcome to Sagan " + Main.VERSION + ". Type 'help' for commands.");
@@ -49,7 +48,7 @@ public class Uci {
       } else if (command.startsWith("help")) {
         displayHelp(command);
       } else if (command.startsWith("setboard ")) {
-        BoardUtil.setFen(board, command.substring(9)); // Insert the submitted position
+        board = BoardUtil.createBoard(command.substring(9)); // Insert the submitted position
       } else if (command.startsWith("testset")) {
 
         if (!(new File(command.split(" ")[1])).exists()) {
@@ -191,10 +190,7 @@ public class Uci {
    */
   public static void uci() throws IOException {
     logger.debug("Enter UCI protocol");
-    Board board = new Board(); // Create a board on which we will be
-    // playing
-    BoardUtil.setFen(board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"); // Start
-    // position
+    Board board = BoardUtil.createStartPosBoard();
 
     boolean useBook = false;
     boolean defaultPonder = false;
@@ -284,32 +280,23 @@ public class Uci {
       // states "startpos")
       // followed by the moves played on the board.
       //
-      // The UCI protocol states that the position should be set on the
-      // board
-      // and all moves played
+      // The UCI protocol states that the position should be set on the board and all moves played
       if (command.startsWith("position")) {
         // Set the position on the board
 
-        if (command.indexOf("startpos") != -1) // Start position
-        {
+        if (command.indexOf("startpos") != -1) {
+          // Starting from start position
+
           openingLine = ""; // Initialize opening line
-          BoardUtil.setFen(
-              board,
-              "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"); // Insert start position
-        } else // Fen string
-        {
+          board = BoardUtil.createStartPosBoard(board.tt); // Get a new board but retain tt
+        } else {
+          // Starting from fen string
           String fen = extractFEN(command);
 
-          useBook = false; // The position was not played from the
-          // start so don't attempt to use the
-          // opening book
-          openingLine = "none"; // Make sure we can't receive a book
-          // move
-          if (!"".equals(fen)) // If fen == "" there was an error
-          // in the position-string
-          {
-            BoardUtil.setFen(board, fen); // Insert the FEN
-          }
+          useBook = false; // The position was not played from the start so don't attempt to use
+          // the opening book
+          openingLine = "none"; // Make sure we can't receive a book move
+          board = BoardUtil.createBoard(fen, board.tt); // Insert the FEN, but retain tt
         }
 
         // Play moves if there are any

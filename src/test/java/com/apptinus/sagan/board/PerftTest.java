@@ -13,8 +13,7 @@ public class PerftTest {
 
   //  @Test
   public void testSpecific() {
-    Board board = new Board();
-    BoardUtil.setFen(board, "r3k2r/p1p1qpb1/bn1ppnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R4RK1 w kq -");
+    Board board = BoardUtil.createBoard("r3k2r/p1p1qpb1/bn1ppnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R4RK1 w kq -");
     Perft.perft(board, 2, true);
   }
 
@@ -102,7 +101,6 @@ public class PerftTest {
   }
 
   private boolean validatePosition(PerftTestPos perftTestPos) {
-    Board board = new Board();
     MoveGen.init();
     /* Check all the positions to the given depth */
     long startTot = System.currentTimeMillis();
@@ -110,7 +108,7 @@ public class PerftTest {
     boolean allDepthsCorrect = true;
     for (int i = 1; i < maxDepth && i < perftTestPos.answerLength(); i++) {
       if (perftTestPos.getAnswerAtDepth(i) != -1L && perftTestPos.getAnswerAtDepth(i) < maxPly) {
-        BoardUtil.setFen(board, perftTestPos.getFen());
+        Board board = BoardUtil.createBoard(perftTestPos.getFen());
         long start = System.currentTimeMillis();
         long answer = Perft.perft(board, i, true);
         StringBuilder sb = new StringBuilder();

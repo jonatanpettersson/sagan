@@ -65,12 +65,12 @@ public class SpeedTest {
 
   @Test
   public void speedTestMiddle() {
-    Board board = new Board();
+    Board board;
 
     long totalTime = System.currentTimeMillis();
     int count = 0;
     for (String pos : positionsMiddle) {
-      BoardUtil.setFen(board, pos);
+      board = BoardUtil.createBoard(pos);
       long thisTime = System.currentTimeMillis();
       Search.search(board, new SearchSupervisor(DEPTH, 0, 0, 0, false));
       logger.debug(
@@ -89,13 +89,13 @@ public class SpeedTest {
 
   @Test
   public void speedTestEnding() {
-    Board board = new Board();
+    Board board;
 
     long totalTime = System.currentTimeMillis();
     int count = 0;
     for (String pos : positionsEnding) {
 
-      BoardUtil.setFen(board, pos);
+      board = BoardUtil.createBoard(pos);
       long thisTime = System.currentTimeMillis();
       Search.search(board, new SearchSupervisor(DEPTH, 0, 0, 0, false));
       logger.debug(

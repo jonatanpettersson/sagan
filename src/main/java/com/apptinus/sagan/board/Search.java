@@ -21,7 +21,6 @@ public class Search {
   private static Eval finalEval;
   private static Move[][] searchMoves;
 
-  //  private static boolean stopSearch;
   private static int totalNodesSearched;
   private static int nodesSearched;
   private static int rootMovesCount;

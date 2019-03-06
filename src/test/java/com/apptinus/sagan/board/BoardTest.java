@@ -18,9 +18,9 @@ public class BoardTest {
 
   @Test
   public void testMakeMove() {
-    Board board = new Board();
+    Board board;
 
-    BoardUtil.setFen(board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    board = BoardUtil.createBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     board.make(Move.m(Move.E2, Move.E4, 0, 0));
     assertEquals("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1", BoardUtil.getFen(board));
     assertEquals(0b110000000000000001111, board.history[0]);
@@ -43,71 +43,71 @@ public class BoardTest {
     assertEquals(0x1020efbfL, board.wPieces);
     assertEquals(0xffef001000000000L, board.bPieces);
 
-    BoardUtil.setFen(board, "rnbqk1nr/ppp1bppp/3p4/4p3/4P3/5N2/PPPPBPPP/RNBQK2R w KQkq -");
+    board = BoardUtil.createBoard("rnbqk1nr/ppp1bppp/3p4/4p3/4P3/5N2/PPPPBPPP/RNBQK2R w KQkq -");
     board.make(Move.m(Move.E1, Move.G1, Move.SPECIAL_CASTLE, 0));
     assertEquals("rnbqk1nr/ppp1bppp/3p4/4p3/4P3/5N2/PPPPBPPP/RNBQ1RK1 b kq - 1 1", BoardUtil.getFen(board));
-    BoardUtil.setFen(board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R3KBNR w KQkq -");
+    board = BoardUtil.createBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R3KBNR w KQkq -");
     board.make(Move.m(Move.E1, Move.C1, Move.SPECIAL_CASTLE, 0));
     assertEquals("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/2KR1BNR b kq - 1 1", BoardUtil.getFen(board));
-    BoardUtil.setFen(board, "r3kbnr/pppppppp/8/8/8/8/PPPPPPPP/2KR1BNR b kq -");
+    board = BoardUtil.createBoard("r3kbnr/pppppppp/8/8/8/8/PPPPPPPP/2KR1BNR b kq -");
     board.make(Move.m(Move.E8, Move.C8, Move.SPECIAL_CASTLE, 0));
     assertEquals("2kr1bnr/pppppppp/8/8/8/8/PPPPPPPP/2KR1BNR w - - 1 2", BoardUtil.getFen(board));
-    BoardUtil.setFen(board, "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/2KR1BNR b kq -");
+    board = BoardUtil.createBoard("r3k2r/pppppppp/8/8/8/8/PPPPPPPP/2KR1BNR b kq -");
     board.make(Move.m(Move.E8, Move.G8, Move.SPECIAL_CASTLE, 0));
     assertEquals("r4rk1/pppppppp/8/8/8/8/PPPPPPPP/2KR1BNR w - - 1 2", BoardUtil.getFen(board));
 
-    BoardUtil.setFen(board, "4k3/8/8/8/Pp6/8/8/4K3 b a3 -");
+    board = BoardUtil.createBoard("4k3/8/8/8/Pp6/8/8/4K3 b a3 -");
     board.make(Move.m(Move.B4, Move.A3, Move.SPECIAL_EP, 0));
     assertEquals("4k3/8/8/8/8/p7/8/4K3 w - - 0 2", BoardUtil.getFen(board));
-    BoardUtil.setFen(board, "4k3/8/8/6Pp/8/8/8/4K3 w - h6");
+    board = BoardUtil.createBoard("4k3/8/8/6Pp/8/8/8/4K3 w - h6");
     board.make(Move.m(Move.G5, Move.H6, Move.SPECIAL_EP, 0));
     assertEquals("4k3/8/7P/8/8/8/8/4K3 b - - 0 1", BoardUtil.getFen(board));
 
-    BoardUtil.setFen(board, "4k3/7P/8/8/8/8/8/4K3 w - -");
+    board = BoardUtil.createBoard("4k3/7P/8/8/8/8/8/4K3 w - -");
     board.make(Move.m(Move.H7, Move.H8, Move.SPECIAL_PROMO, Move.PROMO_N));
     assertEquals("4k2N/8/8/8/8/8/8/4K3 b - - 0 1", BoardUtil.getFen(board));
-    BoardUtil.setFen(board, "4k3/7P/8/8/8/8/8/4K3 w - -");
+    board = BoardUtil.createBoard("4k3/7P/8/8/8/8/8/4K3 w - -");
     board.make(Move.m(Move.H7, Move.H8, Move.SPECIAL_PROMO, Move.PROMO_B));
     assertEquals("4k2B/8/8/8/8/8/8/4K3 b - - 0 1", BoardUtil.getFen(board));
-    BoardUtil.setFen(board, "4k3/7P/8/8/8/8/8/4K3 w - -");
+    board = BoardUtil.createBoard("4k3/7P/8/8/8/8/8/4K3 w - -");
     board.make(Move.m(Move.H7, Move.H8, Move.SPECIAL_PROMO, Move.PROMO_R));
     assertEquals("4k2R/8/8/8/8/8/8/4K3 b - - 0 1", BoardUtil.getFen(board));
-    BoardUtil.setFen(board, "4k3/7P/8/8/8/8/8/4K3 w - -");
+    board = BoardUtil.createBoard("4k3/7P/8/8/8/8/8/4K3 w - -");
     board.make(Move.m(Move.H7, Move.H8, Move.SPECIAL_PROMO, Move.PROMO_Q));
     assertEquals("4k2Q/8/8/8/8/8/8/4K3 b - - 0 1", BoardUtil.getFen(board));
 
-    BoardUtil.setFen(board, "4k3/8/8/8/8/8/p7/4K3 b - -");
+    board = BoardUtil.createBoard("4k3/8/8/8/8/8/p7/4K3 b - -");
     board.make(Move.m(Move.A2, Move.A1, Move.SPECIAL_PROMO, Move.PROMO_N));
     assertEquals("4k3/8/8/8/8/8/8/n3K3 w - - 0 2", BoardUtil.getFen(board));
-    BoardUtil.setFen(board, "4k3/8/8/8/8/8/p7/4K3 b - -");
+    board = BoardUtil.createBoard("4k3/8/8/8/8/8/p7/4K3 b - -");
     board.make(Move.m(Move.A2, Move.A1, Move.SPECIAL_PROMO, Move.PROMO_B));
     assertEquals("4k3/8/8/8/8/8/8/b3K3 w - - 0 2", BoardUtil.getFen(board));
-    BoardUtil.setFen(board, "4k3/8/8/8/8/8/p7/4K3 b - -");
+    board = BoardUtil.createBoard("4k3/8/8/8/8/8/p7/4K3 b - -");
     board.make(Move.m(Move.A2, Move.A1, Move.SPECIAL_PROMO, Move.PROMO_R));
     assertEquals("4k3/8/8/8/8/8/8/r3K3 w - - 0 2", BoardUtil.getFen(board));
-    BoardUtil.setFen(board, "4k3/8/8/8/8/8/p7/4K3 b - -");
+    board = BoardUtil.createBoard("4k3/8/8/8/8/8/p7/4K3 b - -");
     board.make(Move.m(Move.A2, Move.A1, Move.SPECIAL_PROMO, Move.PROMO_Q));
     assertEquals("4k3/8/8/8/8/8/8/q3K3 w - - 0 2", BoardUtil.getFen(board));
 
-    BoardUtil.setFen(board, "r3k3/1P6/8/8/8/8/8/4K3 w - -");
+    board = BoardUtil.createBoard("r3k3/1P6/8/8/8/8/8/4K3 w - -");
     board.make(Move.m(Move.B7, Move.A8, Move.SPECIAL_PROMO, Move.PROMO_N));
     assertEquals("N3k3/8/8/8/8/8/8/4K3 b - - 0 1", BoardUtil.getFen(board));
-    BoardUtil.setFen(board, "2r1k3/1P6/8/8/8/8/8/4K3 w - -");
+    board = BoardUtil.createBoard("2r1k3/1P6/8/8/8/8/8/4K3 w - -");
     board.make(Move.m(Move.B7, Move.C8, Move.SPECIAL_PROMO, Move.PROMO_B));
     assertEquals("2B1k3/8/8/8/8/8/8/4K3 b - - 0 1", BoardUtil.getFen(board));
 
-    BoardUtil.setFen(board, "4k3/8/8/8/8/8/6p1/4K2R b - -");
+    board = BoardUtil.createBoard("4k3/8/8/8/8/8/6p1/4K2R b - -");
     board.make(Move.m(Move.G2, Move.H1, Move.SPECIAL_PROMO, Move.PROMO_R));
     assertEquals("4k3/8/8/8/8/8/8/4K2r w - - 0 2", BoardUtil.getFen(board));
-    BoardUtil.setFen(board, "4k3/8/8/8/8/8/6p1/4KR2 b - -");
+    board = BoardUtil.createBoard("4k3/8/8/8/8/8/6p1/4KR2 b - -");
     board.make(Move.m(Move.G2, Move.F1, Move.SPECIAL_PROMO, Move.PROMO_Q));
     assertEquals("4k3/8/8/8/8/8/8/4Kq2 w - - 0 2", BoardUtil.getFen(board));
   }
 
   @Test
   public void testUnmakeMove() {
-    Board board = new Board();
-    BoardUtil.setFen(board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    Board board;
+    board = BoardUtil.createBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
     Perft.BoardStateTest state1 = new Perft.BoardStateTest(board);
     board.make(Move.m(Move.E2, Move.E4, 0, 0));
@@ -123,114 +123,114 @@ public class BoardTest {
     assertTrue(new Perft.BoardStateTest(board).equals(state1));
     assertEquals("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", BoardUtil.getFen(board));
 
-    BoardUtil.setFen(board, "rnbqk1nr/ppp1bppp/3p4/4p3/4P3/5N2/PPPPBPPP/RNBQK2R w KQkq -");
+    board = BoardUtil.createBoard("rnbqk1nr/ppp1bppp/3p4/4p3/4P3/5N2/PPPPBPPP/RNBQK2R w KQkq -");
     state1 = new Perft.BoardStateTest(board);
     board.make(Move.m(Move.E1, Move.G1, Move.SPECIAL_CASTLE, 0));
     board.unmake(Move.m(Move.E1, Move.G1, Move.SPECIAL_CASTLE, 0));
     assertTrue(new Perft.BoardStateTest(board).equals(state1));
     assertEquals("rnbqk1nr/ppp1bppp/3p4/4p3/4P3/5N2/PPPPBPPP/RNBQK2R w KQkq - 0 1", BoardUtil.getFen(board));
-    BoardUtil.setFen(board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R3KBNR w KQkq -");
+    board = BoardUtil.createBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R3KBNR w KQkq -");
     state1 = new Perft.BoardStateTest(board);
     board.make(Move.m(Move.E1, Move.C1, Move.SPECIAL_CASTLE, 0));
     board.unmake(Move.m(Move.E1, Move.C1, Move.SPECIAL_CASTLE, 0));
     assertTrue(new Perft.BoardStateTest(board).equals(state1));
     assertEquals("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R3KBNR w KQkq - 0 1", BoardUtil.getFen(board));
-    BoardUtil.setFen(board, "r3kbnr/pppppppp/8/8/8/8/PPPPPPPP/2KR1BNR b kq -");
+    board = BoardUtil.createBoard("r3kbnr/pppppppp/8/8/8/8/PPPPPPPP/2KR1BNR b kq -");
     state1 = new Perft.BoardStateTest(board);
     board.make(Move.m(Move.E8, Move.C8, Move.SPECIAL_CASTLE, 0));
     board.unmake(Move.m(Move.E8, Move.C8, Move.SPECIAL_CASTLE, 0));
     assertTrue(new Perft.BoardStateTest(board).equals(state1));
     assertEquals("r3kbnr/pppppppp/8/8/8/8/PPPPPPPP/2KR1BNR b kq - 0 1", BoardUtil.getFen(board));
-    BoardUtil.setFen(board, "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/2KR1BNR b kq -");
+    board = BoardUtil.createBoard("r3k2r/pppppppp/8/8/8/8/PPPPPPPP/2KR1BNR b kq -");
     state1 = new Perft.BoardStateTest(board);
     board.make(Move.m(Move.E8, Move.G8, Move.SPECIAL_CASTLE, 0));
     board.unmake(Move.m(Move.E8, Move.G8, Move.SPECIAL_CASTLE, 0));
     assertTrue(new Perft.BoardStateTest(board).equals(state1));
     assertEquals("r3k2r/pppppppp/8/8/8/8/PPPPPPPP/2KR1BNR b kq - 0 1", BoardUtil.getFen(board));
 
-    BoardUtil.setFen(board, "4k3/8/8/8/Pp6/8/8/4K3 b - a3");
+    board = BoardUtil.createBoard("4k3/8/8/8/Pp6/8/8/4K3 b - a3");
     state1 = new Perft.BoardStateTest(board);
     board.make(Move.m(Move.B4, Move.A3, Move.SPECIAL_EP, 0));
     board.unmake(Move.m(Move.B4, Move.A3, Move.SPECIAL_EP, 0));
     assertTrue(new Perft.BoardStateTest(board).equals(state1));
     assertEquals("4k3/8/8/8/Pp6/8/8/4K3 b - a3 0 1", BoardUtil.getFen(board));
-    BoardUtil.setFen(board, "4k3/8/8/6Pp/8/8/8/4K3 w - h6");
+    board = BoardUtil.createBoard("4k3/8/8/6Pp/8/8/8/4K3 w - h6");
     state1 = new Perft.BoardStateTest(board);
     board.make(Move.m(Move.G5, Move.H6, Move.SPECIAL_EP, 0));
     board.unmake(Move.m(Move.G5, Move.H6, Move.SPECIAL_EP, 0));
     assertTrue(new Perft.BoardStateTest(board).equals(state1));
     assertEquals("4k3/8/8/6Pp/8/8/8/4K3 w - h6 0 1", BoardUtil.getFen(board));
 
-    BoardUtil.setFen(board, "4k3/7P/8/8/8/8/8/4K3 w - -");
+    board = BoardUtil.createBoard("4k3/7P/8/8/8/8/8/4K3 w - -");
     state1 = new Perft.BoardStateTest(board);
     board.make(Move.m(Move.H7, Move.H8, Move.SPECIAL_PROMO, Move.PROMO_N));
     board.unmake(Move.m(Move.H7, Move.H8, Move.SPECIAL_PROMO, Move.PROMO_N));
     assertTrue(new Perft.BoardStateTest(board).equals(state1));
     assertEquals("4k3/7P/8/8/8/8/8/4K3 w - - 0 1", BoardUtil.getFen(board));
-    BoardUtil.setFen(board, "4k3/7P/8/8/8/8/8/4K3 w - -");
+    board = BoardUtil.createBoard("4k3/7P/8/8/8/8/8/4K3 w - -");
     state1 = new Perft.BoardStateTest(board);
     board.make(Move.m(Move.H7, Move.H8, Move.SPECIAL_PROMO, Move.PROMO_B));
     board.unmake(Move.m(Move.H7, Move.H8, Move.SPECIAL_PROMO, Move.PROMO_B));
     assertTrue(new Perft.BoardStateTest(board).equals(state1));
     assertEquals("4k3/7P/8/8/8/8/8/4K3 w - - 0 1", BoardUtil.getFen(board));
-    BoardUtil.setFen(board, "4k3/7P/8/8/8/8/8/4K3 w - -");
+    board = BoardUtil.createBoard("4k3/7P/8/8/8/8/8/4K3 w - -");
     state1 = new Perft.BoardStateTest(board);
     board.make(Move.m(Move.H7, Move.H8, Move.SPECIAL_PROMO, Move.PROMO_R));
     board.unmake(Move.m(Move.H7, Move.H8, Move.SPECIAL_PROMO, Move.PROMO_R));
     assertTrue(new Perft.BoardStateTest(board).equals(state1));
     assertEquals("4k3/7P/8/8/8/8/8/4K3 w - - 0 1", BoardUtil.getFen(board));
-    BoardUtil.setFen(board, "4k3/7P/8/8/8/8/8/4K3 w - -");
+    board = BoardUtil.createBoard("4k3/7P/8/8/8/8/8/4K3 w - -");
     state1 = new Perft.BoardStateTest(board);
     board.make(Move.m(Move.H7, Move.H8, Move.SPECIAL_PROMO, Move.PROMO_Q));
     board.unmake(Move.m(Move.H7, Move.H8, Move.SPECIAL_PROMO, Move.PROMO_Q));
     assertTrue(new Perft.BoardStateTest(board).equals(state1));
     assertEquals("4k3/7P/8/8/8/8/8/4K3 w - - 0 1", BoardUtil.getFen(board));
 
-    BoardUtil.setFen(board, "4k3/8/8/8/8/8/p7/4K3 b - -");
+    board = BoardUtil.createBoard("4k3/8/8/8/8/8/p7/4K3 b - -");
     state1 = new Perft.BoardStateTest(board);
     board.make(Move.m(Move.A2, Move.A1, Move.SPECIAL_PROMO, Move.PROMO_N));
     board.unmake(Move.m(Move.A2, Move.A1, Move.SPECIAL_PROMO, Move.PROMO_N));
     assertTrue(new Perft.BoardStateTest(board).equals(state1));
     assertEquals("4k3/8/8/8/8/8/p7/4K3 b - - 0 1", BoardUtil.getFen(board));
-    BoardUtil.setFen(board, "4k3/8/8/8/8/8/p7/4K3 b - -");
+    board = BoardUtil.createBoard("4k3/8/8/8/8/8/p7/4K3 b - -");
     state1 = new Perft.BoardStateTest(board);
     board.make(Move.m(Move.A2, Move.A1, Move.SPECIAL_PROMO, Move.PROMO_B));
     board.unmake(Move.m(Move.A2, Move.A1, Move.SPECIAL_PROMO, Move.PROMO_B));
     assertTrue(new Perft.BoardStateTest(board).equals(state1));
     assertEquals("4k3/8/8/8/8/8/p7/4K3 b - - 0 1", BoardUtil.getFen(board));
-    BoardUtil.setFen(board, "4k3/8/8/8/8/8/p7/4K3 b - -");
+    board = BoardUtil.createBoard("4k3/8/8/8/8/8/p7/4K3 b - -");
     state1 = new Perft.BoardStateTest(board);
     board.make(Move.m(Move.A2, Move.A1, Move.SPECIAL_PROMO, Move.PROMO_R));
     board.unmake(Move.m(Move.A2, Move.A1, Move.SPECIAL_PROMO, Move.PROMO_R));
     assertTrue(new Perft.BoardStateTest(board).equals(state1));
     assertEquals("4k3/8/8/8/8/8/p7/4K3 b - - 0 1", BoardUtil.getFen(board));
-    BoardUtil.setFen(board, "4k3/8/8/8/8/8/p7/4K3 b - -");
+    board = BoardUtil.createBoard("4k3/8/8/8/8/8/p7/4K3 b - -");
     state1 = new Perft.BoardStateTest(board);
     board.make(Move.m(Move.A2, Move.A1, Move.SPECIAL_PROMO, Move.PROMO_Q));
     board.unmake(Move.m(Move.A2, Move.A1, Move.SPECIAL_PROMO, Move.PROMO_Q));
     assertTrue(new Perft.BoardStateTest(board).equals(state1));
     assertEquals("4k3/8/8/8/8/8/p7/4K3 b - - 0 1", BoardUtil.getFen(board));
 
-    BoardUtil.setFen(board, "r3k3/1P6/8/8/8/8/8/4K3 w - -");
+    board = BoardUtil.createBoard("r3k3/1P6/8/8/8/8/8/4K3 w - -");
     state1 = new Perft.BoardStateTest(board);
     board.make(Move.m(Move.B7, Move.A8, Move.SPECIAL_PROMO, Move.PROMO_N));
     board.unmake(Move.m(Move.B7, Move.A8, Move.SPECIAL_PROMO, Move.PROMO_N));
     assertTrue(new Perft.BoardStateTest(board).equals(state1));
     assertEquals("r3k3/1P6/8/8/8/8/8/4K3 w - - 0 1", BoardUtil.getFen(board));
-    BoardUtil.setFen(board, "2r1k3/1P6/8/8/8/8/8/4K3 w - -");
+    board = BoardUtil.createBoard("2r1k3/1P6/8/8/8/8/8/4K3 w - -");
     state1 = new Perft.BoardStateTest(board);
     board.make(Move.m(Move.B7, Move.C8, Move.SPECIAL_PROMO, Move.PROMO_B));
     board.unmake(Move.m(Move.B7, Move.C8, Move.SPECIAL_PROMO, Move.PROMO_B));
     assertTrue(new Perft.BoardStateTest(board).equals(state1));
     assertEquals("2r1k3/1P6/8/8/8/8/8/4K3 w - - 0 1", BoardUtil.getFen(board));
 
-    BoardUtil.setFen(board, "4k3/8/8/8/8/8/6p1/4K2R b - -");
+    board = BoardUtil.createBoard("4k3/8/8/8/8/8/6p1/4K2R b - -");
     state1 = new Perft.BoardStateTest(board);
     board.make(Move.m(Move.G2, Move.H1, Move.SPECIAL_PROMO, Move.PROMO_R));
     board.unmake(Move.m(Move.G2, Move.H1, Move.SPECIAL_PROMO, Move.PROMO_R));
     assertTrue(new Perft.BoardStateTest(board).equals(state1));
     assertEquals("4k3/8/8/8/8/8/6p1/4K2R b - - 0 1", BoardUtil.getFen(board));
-    BoardUtil.setFen(board, "4k3/8/8/8/8/8/6p1/4KR2 b - -");
+    board = BoardUtil.createBoard("4k3/8/8/8/8/8/6p1/4KR2 b - -");
     state1 = new Perft.BoardStateTest(board);
     board.make(Move.m(Move.G2, Move.F1, Move.SPECIAL_PROMO, Move.PROMO_Q));
     board.unmake(Move.m(Move.G2, Move.F1, Move.SPECIAL_PROMO, Move.PROMO_Q));
@@ -242,8 +242,8 @@ public class BoardTest {
   public void testFenInAndOut1() {
     String fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-    Board board = new Board();
-    BoardUtil.setFen(board, fen);
+    Board board;
+    board = BoardUtil.createBoard(fen);
 
     assertEquals(
         0b0000000000000000000000000000000000000000000000001111111100000000L,
@@ -322,8 +322,8 @@ public class BoardTest {
   public void testFenInAndOut2() {
     String fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
 
-    Board board = new Board();
-    BoardUtil.setFen(board, fen);
+    Board board;
+    board = BoardUtil.createBoard(fen);
 
     assertEquals(
         0b0000000000000000000000000000100000010000000000001110011100000000L,
@@ -400,23 +400,23 @@ public class BoardTest {
 
   @Test
   public void testFenInAndOut3() {
-    Board board = new Board();
-    BoardUtil.setFen(board, "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
+    Board board;
+    board = BoardUtil.createBoard("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
     assertEquals("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8", BoardUtil.getFen(board));
 
-    BoardUtil.setFen(board, "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1");
+    board = BoardUtil.createBoard("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1");
     assertEquals("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1", BoardUtil.getFen(board));
 
-    BoardUtil.setFen(board, "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2");
+    board = BoardUtil.createBoard("rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2");
     assertEquals("rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2", BoardUtil.getFen(board));
 
-    BoardUtil.setFen(board, "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2");
+    board = BoardUtil.createBoard("rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2");
     assertEquals("rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2", BoardUtil.getFen(board));
 
-    BoardUtil.setFen(board, "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB2 b KQkq - 1 2");
+    board = BoardUtil.createBoard("rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB2 b KQkq - 1 2");
     assertEquals("rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB2 b KQkq - 1 2", BoardUtil.getFen(board));
 
-    BoardUtil.setFen(board, "1nbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB2 b KQkq - 1 2");
+    board = BoardUtil.createBoard("1nbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB2 b KQkq - 1 2");
     assertEquals("1nbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB2 b KQkq - 1 2", BoardUtil.getFen(board));
   }
 

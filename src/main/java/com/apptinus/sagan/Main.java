@@ -11,6 +11,8 @@ public class Main {
 
   public static final String VERSION = "v0.0.2";
 
+  public static final int DEFAULT_TT_SIZE_MB = 16;
+
   public static void main(String[] args) throws IOException {
 
     // Populate the version from properties file

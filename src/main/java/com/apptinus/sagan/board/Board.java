@@ -71,6 +71,18 @@ public class Board {
   public int fPly; // Half moves since capture (fifty moves counter)
   public int ply; // Half moves since start of game
 
+  public Tt tt;
+
+  private Board() {}
+
+  public Board(int ttSizeMb) {
+    tt = new Tt(ttSizeMb);
+  }
+
+  public Board(Tt tt) {
+    this.tt = tt;
+  }
+
   public void make(int move) {
     int from = from(move);
     int to = to(move);
