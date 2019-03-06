@@ -21,10 +21,6 @@ public class Search {
   private static Eval finalEval;
   private static Move[][] searchMoves;
 
-  private static int totalNodesSearched;
-  private static int nodesSearched;
-  private static int rootMovesCount;
-
   public static int currentDepth;
 
   public static SearchSupervisor supervisor;
@@ -38,15 +34,13 @@ public class Search {
     for (int i = 0; i < searchMoves.length; i++)
       for (int j = 0; j < searchMoves[i].length; j++) searchMoves[i][j] = new Move();
     if (MoveGen.genMoves(board, searchMoves[0], 0) == 0) return finalEval;
-    totalNodesSearched = 0;
-    nodesSearched = 0;
 
     return iterativeSearch(board);
   }
 
   private static Eval iterativeSearch(Board board) {
 
-    rootMovesCount = MoveGen.genMoves(board, searchMoves[0], 0);
+    int rootMovesCount = MoveGen.genMoves(board, searchMoves[0], 0);
     for (int i = 0; i < rootMovesCount; i++) {
       board.make(searchMoves[0][i].move);
       searchMoves[0][i].score = -alphaBeta(board, PLY, -INFINITY, INFINITY, 1);
@@ -59,8 +53,8 @@ public class Search {
     int researchBetaCount = 0;
 
     // Iterative deepening
-    for (currentDepth = 1; currentDepth <= 64; ) {
-      Move bestMove = alphaBetaRoot(board, currentDepth * PLY, alpha, beta);
+    for (currentDepth = 1; currentDepth < 64; ) {
+      Move bestMove = alphaBetaRoot(board, currentDepth * PLY, alpha, beta, rootMovesCount);
       int eval = bestMove.score;
 
       if (supervisor.checkShouldStop()) {
@@ -101,7 +95,7 @@ public class Search {
       finalEval = new Eval(new int[128], eval);
       finalEval.line[0] = bestMove.move;
 
-      supervisor.reportThinkingLine(currentDepth, totalNodesSearched, finalEval);
+      supervisor.reportThinkingLine(currentDepth, finalEval);
 
       alpha = eval - 60; // Get ready for a new search, with a new window
       beta = eval + 60; // The current window equals 3/10 of a pawn
@@ -120,7 +114,8 @@ public class Search {
     return finalEval;
   }
 
-  private static Move alphaBetaRoot(Board board, int depth, int alpha, int beta) {
+  private static Move alphaBetaRoot(
+      Board board, int depth, int alpha, int beta, int rootMovesCount) {
     Move bestMove = new Move();
 
     int eval;
@@ -141,8 +136,7 @@ public class Search {
 
       board.unmake(searchMoves[0][i].move);
 
-      totalNodesSearched += nodesSearched;
-      nodesSearched = 0;
+      supervisor.resetCurrentNodesSearched();
 
       if (eval > currentBestEval) {
         currentBestEval = eval;
@@ -207,7 +201,7 @@ public class Search {
 
       board.make(searchMoves[ply][i].move); // Make the move on the board
 
-      nodesSearched++;
+      supervisor.incrCurrentNodesSearched();
 
       if (searchedMoves >= 1) {
         // PVS search
@@ -297,7 +291,7 @@ public class Search {
         continue;
       }
 
-      nodesSearched++;
+      supervisor.incrCurrentNodesSearched();
 
       eval = -quiesce(board, -beta, -alpha, ply + 1);
       board.unmake(searchMoves[ply][i].move);

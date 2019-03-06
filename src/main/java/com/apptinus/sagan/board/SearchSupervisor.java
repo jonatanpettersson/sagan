@@ -21,6 +21,9 @@ public class SearchSupervisor {
   private boolean ponder;
   private int nextTimeCheck;
 
+  private int totalNodesSearched;
+  private int currentNodesSearched;
+
   public SearchSupervisor(int depth, int timeLeft, int increment, int movetime, boolean ponder) {
     this.useFixedDepth = depth != 0;
     this.depth = depth;
@@ -29,10 +32,21 @@ public class SearchSupervisor {
     this.startTime = System.currentTimeMillis();
     this.shouldStop = false;
 
-    nextTimeCheck = TIME_CHECK_INTERVAL;
+    this.nextTimeCheck = TIME_CHECK_INTERVAL;
+    this.totalNodesSearched = 0;
+    this.currentNodesSearched = 0;
 
-    if (movetime == 0) timeForThisMove = calculateTime(timeLeft, increment);
-    else timeForThisMove = movetime;
+    if (movetime == 0) this.timeForThisMove = calculateTime(timeLeft, increment);
+    else this.timeForThisMove = movetime;
+  }
+
+  public void incrCurrentNodesSearched() {
+    this.currentNodesSearched++;
+  }
+
+  public void resetCurrentNodesSearched() {
+    this.totalNodesSearched += currentNodesSearched;
+    this.currentNodesSearched = 0;
   }
 
   private static int calculateTime(int timeLeft, int increment) {
@@ -121,7 +135,7 @@ public class SearchSupervisor {
     }
   }
 
-  public void reportThinkingLine(int currentDepth, int totalNodesSearched, Search.Eval finalEval) {
+  public void reportThinkingLine(int currentDepth, Search.Eval finalEval) {
     System.out.println(receiveThinking(currentDepth, totalNodesSearched, finalEval));
   }
 

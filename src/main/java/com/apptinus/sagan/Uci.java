@@ -271,6 +271,7 @@ public class Uci {
       // A new game is starting, can be both from start and inserted
       // position
       if ("ucinewgame".equals(command)) {
+        board = BoardUtil.createStartPosBoard();
         searchDepth = 0;
         movetime = 0;
       }
