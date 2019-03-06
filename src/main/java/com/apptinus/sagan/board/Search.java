@@ -163,15 +163,7 @@ public class Search {
     int eval;
 
     if (supervisor.checkShouldStop()) return 0;
-
-    // If we're not in a root node and there's a threefold repetition detected, or the fifty move
-    // rule is reached (in any node) return draw
-    if (
-    /*(depth / PLY != currentDepth
-        && Settings.getInstance().getRepTable().repExists(board.zobristKey))
-    || */ board.fPly >= 100) {
-      return DRAW_VALUE;
-    }
+    if (depth / PLY != currentDepth && board.isDraw()) return DRAW_VALUE;
 
     boolean isInCheck = board.isInCheck(board.toMove);
     if (isInCheck) {
@@ -254,6 +246,7 @@ public class Search {
     int eval;
 
     if (supervisor.checkShouldStop()) return 0;
+    if (board.isDraw()) return DRAW_VALUE;
 
     int standPatEval = Evaluation.evaluate(board);
     if (standPatEval > alpha) {

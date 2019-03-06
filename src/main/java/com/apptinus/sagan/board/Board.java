@@ -38,6 +38,7 @@ import static com.apptinus.sagan.util.Bitops.setBit;
 import static com.apptinus.sagan.util.Bitops.unset;
 
 import com.apptinus.sagan.util.Bitops;
+import com.apptinus.sagan.util.Zobrist;
 
 public class Board {
   public static final int WK = 0;
@@ -59,6 +60,7 @@ public class Board {
   public long[] pieces = new long[12];
 
   public int[] history = new int[1024];
+  public long[] zobristHistory = new long[1024]; // Zobrist key history, for repetition detection
 
   public long wPieces;
   public long bPieces;
@@ -70,6 +72,7 @@ public class Board {
   public int ep; // Available en passant square
   public int fPly; // Half moves since capture (fifty moves counter)
   public int ply; // Half moves since start of game
+  public long zobrist; // Current zobrist representation of the board
 
   public Tt tt;
 
@@ -89,8 +92,10 @@ public class Board {
     int special = special(move);
     int piece = board[from];
     int moving = piece <= 5 ? 0 : 1;
+    zobristHistory[ply] = zobrist;
 
     toMove = (toMove == WHITE) ? BLACK : WHITE;
+    zobrist ^= Zobrist.SIDE;
 
     unsetPiece(from, piece);
 
@@ -161,6 +166,9 @@ public class Board {
       unsetPiece(rookFromSquare, castlingRook);
     }
 
+    // Castling rights
+    zobrist ^= Zobrist.W_CASTLING_RIGHTS[wCastle]; // Clear previous castling rights
+    zobrist ^= Zobrist.B_CASTLING_RIGHTS[bCastle];
     if (wCastle != 0) {
       if (piece == WK) {
         wCastle = 0;
@@ -179,7 +187,11 @@ public class Board {
         bCastle = unset(bCastle, 1);
       }
     }
+    zobrist ^= Zobrist.W_CASTLING_RIGHTS[wCastle];
+    zobrist ^= Zobrist.B_CASTLING_RIGHTS[bCastle];
 
+    // En passant square
+    if (ep != -1) zobrist ^= Zobrist.EN_PASSANT[ep]; // Clear previous en passant square
     if (piece == WP && to - from == 16) {
       ep = next(so(setBit(to)));
     } else if (piece == BP && from - to == 16) {
@@ -187,6 +199,7 @@ public class Board {
     } else {
       ep = -1;
     }
+    if (ep != -1) zobrist ^= Zobrist.EN_PASSANT[ep];
 
     ply++;
   }
@@ -204,6 +217,7 @@ public class Board {
     bCastle = bCastle(history[ply]);
     ep = epSquare(history[ply]);
     fPly = fPly(history[ply]);
+    zobrist = zobristHistory[ply];
 
     unsetPiece(to, piece);
 
@@ -270,14 +284,59 @@ public class Board {
     }
   }
 
+  public boolean isDraw() {
+    // 50 move rule
+    if (fPly >= 100) {
+      return true;
+    }
+
+    // 3-fold repetition. Only compares with the current zobrist, since we would never go passed
+    // a 3-fold repetition in the search, so it can't have occured previously without counting
+    // current position
+    int repetitions = 0;
+    for (int i = ply; i >= 0; i--) {
+      if (zobrist == zobristHistory[i]) {
+        repetitions++;
+      }
+      if (repetitions >= 2) {
+        return true;
+      }
+    }
+
+    // Insufficient material
+    int wBishops = Bitops.population(pieces[WB]);
+    int wKnights = Bitops.population(pieces[WN]);
+    int bBishops = Bitops.population(pieces[BB]);
+    int bKnights = Bitops.population(pieces[BN]);
+    if (Bitops.population(pieces[WP]) != 0
+        || Bitops.population(pieces[WR]) != 0
+        || Bitops.population(pieces[WQ]) != 0
+        || wBishops > 1
+        || wKnights > 2
+        || Bitops.population(pieces[BP]) != 0
+        || Bitops.population(pieces[BR]) != 0
+        || Bitops.population(pieces[BQ]) != 0
+        || bBishops > 1
+        || bKnights > 2) {
+      return false;
+    }
+    if ((wBishops > 0 && wKnights > 0) || (bBishops > 0 && bKnights > 0)) {
+      return false;
+    }
+
+    return true;
+  }
+
   private void setPiece(int square, int piece) {
     board[square] = piece;
     pieces[piece] = set(pieces[piece], square);
     allPieces = set(allPieces, square);
     if (piece <= 5) {
       wPieces = set(wPieces, square);
+      zobrist ^= Zobrist.PIECES[piece][0][square];
     } else {
       bPieces = set(bPieces, square);
+      zobrist ^= Zobrist.PIECES[piece-6][1][square];
     }
   }
 
@@ -287,8 +346,10 @@ public class Board {
     allPieces = unset(allPieces, square);
     if (piece <= 5) {
       wPieces = unset(wPieces, square);
+      zobrist ^= Zobrist.PIECES[piece][0][square];
     } else {
       bPieces = unset(bPieces, square);
+      zobrist ^= Zobrist.PIECES[piece-6][1][square];
     }
   }
 

@@ -175,6 +175,8 @@ public class BoardUtil {
       | board.pieces[BP];
     board.allPieces |= board.wPieces | board.bPieces;
 
+    board.zobrist = Zobrist.getZobristKey(board);
+
     return board;
   }
 

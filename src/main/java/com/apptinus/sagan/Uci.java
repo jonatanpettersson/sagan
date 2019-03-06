@@ -499,39 +499,39 @@ public class Uci {
   } // END receiveMove
 
   /** Checks the board and the repetition table if the game is over */
-  public static String isGameOver(Board board, int[] gameHistory, int gameHistoryIndex) {
-    Move[] legalMoves = new Move[256];
-    for (int i = 0; i < 256; i++) legalMoves[i] = new Move();
-    if (MoveGen.genMoves(board, legalMoves, 0) == 0) {
-      if (board.isInCheck(board.toMove)) {
-        if (board.toMove == WHITE) {
-          return "0-1 (Black mates)";
-        } else {
-          return "1-0 (White mates)";
-        }
-      } else {
-        return "1/2-1/2 (Stalemate)";
-      }
-    }
-
-    if (board.fPly >= 100) {
-      return "1/2-1/2 (50 moves rule)";
-    }
-
-    for (int i = 0; i < gameHistoryIndex; i++) {
-      int repetitions = 0;
-      for (int j = i + 1; j < gameHistoryIndex; j++) {
-        if (gameHistory[i] == gameHistory[j]) repetitions++;
-        if (repetitions == 2) {
-          return "1/2-1/2 (Drawn by repetition)";
-        }
-      }
-    }
-
-    if (Evaluation.drawByMaterial(board)) {
-      return "1/2-1/2 (Drawn by material)";
-    }
-
-    return "no";
-  } // END isGameOver
+//  public static String isGameOver(Board board, int[] gameHistory, int gameHistoryIndex) {
+//    Move[] legalMoves = new Move[256];
+//    for (int i = 0; i < 256; i++) legalMoves[i] = new Move();
+//    if (MoveGen.genMoves(board, legalMoves, 0) == 0) {
+//      if (board.isInCheck(board.toMove)) {
+//        if (board.toMove == WHITE) {
+//          return "0-1 (Black mates)";
+//        } else {
+//          return "1-0 (White mates)";
+//        }
+//      } else {
+//        return "1/2-1/2 (Stalemate)";
+//      }
+//    }
+//
+//    if (board.fPly >= 100) {
+//      return "1/2-1/2 (50 moves rule)";
+//    }
+//
+//    for (int i = 0; i < gameHistoryIndex; i++) {
+//      int repetitions = 0;
+//      for (int j = i + 1; j < gameHistoryIndex; j++) {
+//        if (gameHistory[i] == gameHistory[j]) repetitions++;
+//        if (repetitions == 2) {
+//          return "1/2-1/2 (Drawn by repetition)";
+//        }
+//      }
+//    }
+//
+//    if (Evaluation.drawByMaterial(board)) {
+//      return "1/2-1/2 (Drawn by material)";
+//    }
+//
+//    return "no";
+//  } // END isGameOver
 }

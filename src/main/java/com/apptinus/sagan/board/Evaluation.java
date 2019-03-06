@@ -24,8 +24,6 @@ public class Evaluation {
   };
 
   public static int evaluate(Board board) {
-    if (drawByMaterial(board)) return 0;
-
     int eval = 0;
     for (int i = 0; i <= 11; i++) {
       eval += PIECE_VALUE[i] * Bitops.population(board.pieces[i]);
@@ -66,30 +64,6 @@ public class Evaluation {
 
       return true;
     }
-  }
-
-  public static final boolean drawByMaterial(Board board) {
-    int wBishops = Bitops.population(board.pieces[WB]);
-    int wKnights = Bitops.population(board.pieces[WN]);
-    int bBishops = Bitops.population(board.pieces[BB]);
-    int bKnights = Bitops.population(board.pieces[BN]);
-    if (Bitops.population(board.pieces[WP]) != 0
-        || Bitops.population(board.pieces[WR]) != 0
-        || Bitops.population(board.pieces[WQ]) != 0
-        || wBishops > 1
-        || wKnights > 2
-        || Bitops.population(board.pieces[BP]) != 0
-        || Bitops.population(board.pieces[BR]) != 0
-        || Bitops.population(board.pieces[BQ]) != 0
-        || bBishops > 1
-        || bKnights > 2) {
-      return false;
-    }
-    if ((wBishops > 0 && wKnights > 0) || (bBishops > 0 && bKnights > 0)) {
-      return false;
-    }
-
-    return true;
   }
 
   public static String getEvalInfo(Board board) {
