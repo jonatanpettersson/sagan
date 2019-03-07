@@ -284,6 +284,11 @@ public class Board {
     }
   }
 
+  public final void nullmoveToggle() {
+    toMove *= -1;
+    zobrist ^= Zobrist.SIDE;
+  }
+
   public boolean isDraw() {
     // 50 move rule
     if (fPly >= 100) {
