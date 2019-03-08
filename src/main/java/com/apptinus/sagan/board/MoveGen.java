@@ -99,7 +99,9 @@ public class MoveGen {
   }
 
   public static int genAllLegalMoves(Board board, Move[] moves, int startIndex) {
-    int pseudoIndex = genPseudoLegalCaptures(board, moves, 0);
+    int pseudoIndex = genPseudoLegalQueenPromotions(board, moves, 0);
+    pseudoIndex = genPseudoLegalOtherPromotions(board, moves, pseudoIndex);
+    pseudoIndex = genPseudoLegalCaptures(board, moves, pseudoIndex);
     pseudoIndex = genPseudoLegalNonCaptures(board, moves, pseudoIndex);
     int totalLegalMoves = 0;
     for (int i = 0; i < pseudoIndex + startIndex; i++) {
@@ -162,8 +164,14 @@ public class MoveGen {
               movesIdx);
 
       // Pawns
+      // Exclude captures to last rank (will be handled by promotion generation)
       movesIdx =
-          genPawnTargets(board.pieces[WP], pawnWhiteCaptureDeltas, board.bPieces, moves, movesIdx);
+          genPawnTargets(
+              board.pieces[WP],
+              pawnWhiteCaptureDeltas,
+              board.bPieces & 0xffffffffffffffL,
+              moves,
+              movesIdx);
 
       if (board.ep != -1) {
         movesIdx =
@@ -217,8 +225,14 @@ public class MoveGen {
               movesIdx);
 
       // Pawns
+      // Exclude captures to last rank (will be handled by promotion generation)
       movesIdx =
-          genPawnTargets(board.pieces[BP], pawnBlackCaptureDeltas, board.wPieces, moves, movesIdx);
+          genPawnTargets(
+              board.pieces[BP],
+              pawnBlackCaptureDeltas,
+              board.wPieces & 0xffffffffffffff00L,
+              moves,
+              movesIdx);
 
       if (board.ep != -1) {
         movesIdx =
@@ -278,7 +292,8 @@ public class MoveGen {
               movesIdx);
 
       // Pawns
-      long pawnsAbleToPush = so(~board.allPieces) & board.pieces[WP];
+      // Exclude pawns able to push to last rank (will be handle by promotion generation)
+      long pawnsAbleToPush = so(~board.allPieces) & board.pieces[WP] & 0xff00ffffffffffffL;
       long pawsAbleToPushPush =
           so(~board.allPieces & so(~board.allPieces & 0xFF000000)) & board.pieces[WP] & 0xFF00;
 
@@ -342,7 +357,8 @@ public class MoveGen {
               movesIdx);
 
       // Pawns
-      long pawnsAbleToPush = no(~board.allPieces) & board.pieces[BP];
+      // Exclude pawns able to push to last rank (will be handle by promotion generation)
+      long pawnsAbleToPush = no(~board.allPieces) & board.pieces[BP] & 0xffffffffffff00ffL;
       long pawsAbleToPushPush =
           no(~board.allPieces & no(~board.allPieces & 0xFF00000000L))
               & board.pieces[BP]
@@ -374,9 +390,9 @@ public class MoveGen {
       // Pawns
       long pawnsAbleToPushToLastRank = so(~board.allPieces) & board.pieces[WP] & 0xff000000000000L;
 
-      movesIdx = genPawnTargets(pawnsAbleToPushToLastRank, 8, moves, movesIdx);
+      movesIdx = genPawnTargetsQueenPromo(pawnsAbleToPushToLastRank, 8, moves, movesIdx);
       movesIdx =
-          genPawnTargetsQueenPromoOnly(
+          genPawnTargetsQueenPromo(
               board.pieces[WP] & 0xff000000000000L,
               pawnWhiteCaptureDeltas,
               board.bPieces,
@@ -387,9 +403,36 @@ public class MoveGen {
       // Pawns
       long pawnsAbleToPushToLastRank = no(~board.allPieces) & board.pieces[BP] & 0xff00L;
 
-      movesIdx = genPawnTargets(pawnsAbleToPushToLastRank, -8, moves, movesIdx);
+      movesIdx = genPawnTargetsQueenPromo(pawnsAbleToPushToLastRank, -8, moves, movesIdx);
       movesIdx =
-          genPawnTargetsQueenPromoOnly(
+          genPawnTargetsQueenPromo(
+              board.pieces[BP] & 0xff00L, pawnBlackCaptureDeltas, board.wPieces, moves, movesIdx);
+    }
+
+    return movesIdx;
+  }
+
+  public static int genPseudoLegalOtherPromotions(Board board, Move[] moves, int movesIdx) {
+    if (board.toMove == WHITE) {
+      // Pawns
+      long pawnsAbleToPushToLastRank = so(~board.allPieces) & board.pieces[WP] & 0xff000000000000L;
+
+      movesIdx = genPawnTargetsOtherPromo(pawnsAbleToPushToLastRank, 8, moves, movesIdx);
+      movesIdx =
+          genPawnTargetsOtherPromo(
+              board.pieces[WP] & 0xff000000000000L,
+              pawnWhiteCaptureDeltas,
+              board.bPieces,
+              moves,
+              movesIdx);
+
+    } else {
+      // Pawns
+      long pawnsAbleToPushToLastRank = no(~board.allPieces) & board.pieces[BP] & 0xff00L;
+
+      movesIdx = genPawnTargetsOtherPromo(pawnsAbleToPushToLastRank, -8, moves, movesIdx);
+      movesIdx =
+          genPawnTargetsOtherPromo(
               board.pieces[BP] & 0xff00L, pawnBlackCaptureDeltas, board.wPieces, moves, movesIdx);
     }
 
@@ -470,7 +513,28 @@ public class MoveGen {
     return movesIdx;
   }
 
-  private static int genPawnTargets(
+  private static int genPawnTargetsQueenPromo(
+      long pieces, long[] deltas, long enemies, Move[] moves, int movesIdx) {
+    int from;
+    while ((from = next(pieces)) >= 0) {
+      int to;
+      long delta = deltas[from] & enemies;
+      while ((to = next(delta)) >= 0) {
+        if ((setBit(to) & 0xFF000000000000FFL) != 0) {
+          // Reached first or last rank, pawn promotes
+          moves[movesIdx++].move = m(from, to, SPECIAL_PROMO, PROMO_Q);
+        } else {
+          throw new IllegalArgumentException("Non-romotion in promotion pawns generation");
+        }
+        delta = unset(delta, to);
+      }
+      pieces = unset(pieces, from);
+    }
+
+    return movesIdx;
+  }
+
+  private static int genPawnTargetsOtherPromo(
       long pieces, long[] deltas, long enemies, Move[] moves, int movesIdx) {
     int from;
     while ((from = next(pieces)) >= 0) {
@@ -482,7 +546,27 @@ public class MoveGen {
           moves[movesIdx++].move = m(from, to, SPECIAL_PROMO, PROMO_N);
           moves[movesIdx++].move = m(from, to, SPECIAL_PROMO, PROMO_B);
           moves[movesIdx++].move = m(from, to, SPECIAL_PROMO, PROMO_R);
-          moves[movesIdx++].move = m(from, to, SPECIAL_PROMO, PROMO_Q);
+        } else {
+          throw new IllegalArgumentException("Non-romotion in promotion pawns generation");
+        }
+        delta = unset(delta, to);
+      }
+      pieces = unset(pieces, from);
+    }
+
+    return movesIdx;
+  }
+
+  private static int genPawnTargets(
+      long pieces, long[] deltas, long enemies, Move[] moves, int movesIdx) {
+    int from;
+    while ((from = next(pieces)) >= 0) {
+      int to;
+      long delta = deltas[from] & enemies;
+      while ((to = next(delta)) >= 0) {
+        if ((setBit(to) & 0xFF000000000000FFL) != 0) {
+          // Reached first or last rank, pawn promotes
+          throw new IllegalArgumentException("Promotion in non-promotion pawns generation");
         } else {
           moves[movesIdx++].move = m(from, to, SPECIAL_NONE, 0);
         }
@@ -494,20 +578,33 @@ public class MoveGen {
     return movesIdx;
   }
 
-  private static int genPawnTargetsQueenPromoOnly(
-      long pieces, long[] deltas, long enemies, Move[] moves, int movesIdx) {
+  private static int genPawnTargetsQueenPromo(long pieces, int delta, Move[] moves, int movesIdx) {
     int from;
     while ((from = next(pieces)) >= 0) {
-      int to;
-      long delta = deltas[from] & enemies;
-      while ((to = next(delta)) >= 0) {
-        if ((setBit(to) & 0xFF000000000000FFL) != 0) {
-          // Reached first or last rank, pawn promotes
-          moves[movesIdx++].move = m(from, to, SPECIAL_PROMO, PROMO_Q);
-        } else {
-          moves[movesIdx++].move = m(from, to, SPECIAL_NONE, 0);
-        }
-        delta = unset(delta, to);
+      int to = from + delta;
+      if ((setBit(to) & 0xFF000000000000FFL) != 0) {
+        // Reached first or last rank, pawn promotes
+        moves[movesIdx++].move = m(from, to, SPECIAL_PROMO, PROMO_Q);
+      } else {
+        throw new IllegalArgumentException("Non-romotion in promotion pawns generation");
+      }
+      pieces = unset(pieces, from);
+    }
+
+    return movesIdx;
+  }
+
+  private static int genPawnTargetsOtherPromo(long pieces, int delta, Move[] moves, int movesIdx) {
+    int from;
+    while ((from = next(pieces)) >= 0) {
+      int to = from + delta;
+      if ((setBit(to) & 0xFF000000000000FFL) != 0) {
+        // Reached first or last rank, pawn promotes
+        moves[movesIdx++].move = m(from, to, SPECIAL_PROMO, PROMO_N);
+        moves[movesIdx++].move = m(from, to, SPECIAL_PROMO, PROMO_B);
+        moves[movesIdx++].move = m(from, to, SPECIAL_PROMO, PROMO_R);
+      } else {
+        throw new IllegalArgumentException("Non-romotion in promotion pawns generation");
       }
       pieces = unset(pieces, from);
     }
@@ -521,10 +618,7 @@ public class MoveGen {
       int to = from + delta;
       if ((setBit(to) & 0xFF000000000000FFL) != 0) {
         // Reached first or last rank, pawn promotes
-        moves[movesIdx++].move = m(from, to, SPECIAL_PROMO, PROMO_N);
-        moves[movesIdx++].move = m(from, to, SPECIAL_PROMO, PROMO_B);
-        moves[movesIdx++].move = m(from, to, SPECIAL_PROMO, PROMO_R);
-        moves[movesIdx++].move = m(from, to, SPECIAL_PROMO, PROMO_Q);
+        throw new IllegalArgumentException("Promotion in non-promotion pawns generation");
       } else {
         moves[movesIdx++].move = m(from, from + delta, SPECIAL_NONE, 0);
       }

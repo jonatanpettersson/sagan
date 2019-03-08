@@ -1,8 +1,6 @@
 package com.apptinus.sagan.board;
 
-import static com.apptinus.sagan.board.Board.WP;
 import static com.apptinus.sagan.board.Move.BLACK;
-import static com.apptinus.sagan.board.Move.SPECIAL_EP;
 import static com.apptinus.sagan.board.Move.SPECIAL_PROMO;
 import static com.apptinus.sagan.board.Move.WHITE;
 
@@ -222,61 +220,109 @@ public class Search {
     // still done if moving stuff around)
     int hashMove = board.tt.getProbedMove();
 
-    //    if (hashMove == 0 && beta - alpha > 1 && depth / PLY >= 5) {
-    //      alphaBeta(board, depth - 2 * PLY, alpha, beta, false, ply + 1);
-    //      hashMove = searchMoves[ply + 1][0].move;
-    //    }
+    if (hashMove == 0 && beta - alpha > 1 && depth / PLY >= 5) {
+      alphaBeta(board, depth - 2 * PLY, alpha, beta, false, ply + 1);
+      hashMove = searchMoves[ply + 1][0].move;
+    }
 
     int evalType = Tt.UPPER_BOUND;
     int bestEval = -INFINITY;
     int searchedMoves = 0;
-    int currentMovesCount;
+    int firstEmptyMoveIndex = 0;
     int startIndex = 0;
 
-    currentMovesCount = MoveGen.genAllLegalMoves(board, searchMoves[ply], 0);
+    for (int generationState = 0; generationState <= 6; generationState++) {
+      // Generate moves depending on state
+      if (generationState == 0) {
+        // Hash move
+        if (hashMove == 0) continue;
+        searchMoves[ply][0].move = hashMove;
+      } else if (generationState == 1) {
+        // Queen promotions
+        startIndex = firstEmptyMoveIndex;
+        firstEmptyMoveIndex =
+            MoveGen.genPseudoLegalQueenPromotions(board, searchMoves[ply], firstEmptyMoveIndex);
+      } else if (generationState == 3) {
+        // Winning captures
+        startIndex = firstEmptyMoveIndex;
+        firstEmptyMoveIndex =
+            MoveGen.genPseudoLegalCaptures(board, searchMoves[ply], firstEmptyMoveIndex);
 
-    // Go through the generated moves one by one
-    for (int i = startIndex; i < currentMovesCount; i++) {
+        for (int i = startIndex; i < firstEmptyMoveIndex; i++) {
+          Move thisMove = searchMoves[ply][i];
 
-      if (searchMoves[ply][i].score == -10000) {
-        continue; // This means the move has already been searched so skip it
+          if (thisMove.move == hashMove) {
+            thisMove.score = -10000;
+          } else {
+
+          }
+        }
+
+      } else if (generationState == 4) {
+        // Other promotions
+        startIndex = firstEmptyMoveIndex;
+        firstEmptyMoveIndex =
+            MoveGen.genPseudoLegalOtherPromotions(board, searchMoves[ply], firstEmptyMoveIndex);
+      } else if (generationState == 5) {
+        // Non-captures
+        startIndex = firstEmptyMoveIndex;
+        firstEmptyMoveIndex =
+            MoveGen.genPseudoLegalNonCaptures(board, searchMoves[ply], firstEmptyMoveIndex);
+      } else if (generationState == 6) {
+        // Losing captures
+        startIndex = firstEmptyMoveIndex + 1;
       }
 
-      board.make(searchMoves[ply][i].move); // Make the move on the board
+      // Go through the generated moves one by one
+      for (int i = startIndex; i < firstEmptyMoveIndex; i++) {
 
-      supervisor.incrCurrentNodesSearched();
+        if (searchMoves[ply][i].score == -10000) {
+          continue; // This means the move has already been searched so skip it
+        }
 
-      if (searchedMoves >= 1) {
-        // PVS search
-        eval = -alphaBeta(board, depth - PLY, -alpha - 1, -alpha, true, ply + 1);
+        board.make(searchMoves[ply][i].move); // Make the move on the board
+        // Since we're using pseudolegal moves, need to check if the side that just made a move
+        // is now in check, if so the move is not legal so skip searching it
+        if (board.isInCheck(board.toMove == WHITE ? BLACK : WHITE)) {
+          board.unmake(searchMoves[ply][i].move);
+          continue;
+        }
 
-        if (eval > alpha && eval < beta) {
-          // Full depth search
+        supervisor.incrCurrentNodesSearched();
+
+        if (searchedMoves >= 1) {
+          // PVS search
+          eval = -alphaBeta(board, depth - PLY, -alpha - 1, -alpha, true, ply + 1);
+
+          if (eval > alpha && eval < beta) {
+            // Full depth search
+            eval = -alphaBeta(board, depth - PLY, -beta, -alpha, true, ply + 1);
+          }
+        } else {
           eval = -alphaBeta(board, depth - PLY, -beta, -alpha, true, ply + 1);
         }
-      } else {
-        eval = -alphaBeta(board, depth - PLY, -beta, -alpha, true, ply + 1);
-      }
 
-      searchedMoves++;
+        searchedMoves++;
 
-      board.unmake(searchMoves[ply][i].move); // Reset the board
+        board.unmake(searchMoves[ply][i].move); // Reset the board
 
-      if (eval > bestEval) {
+        if (eval > bestEval) {
 
-        if (eval >= beta) {
-          searchMoves[ply][0].move = searchMoves[ply][i].move;
-          board.tt.set(board.zobrist, depth / PLY, Tt.LOWER_BOUND, eval, searchMoves[ply][i].move);
-          return eval;
-        }
+          if (eval >= beta) {
+            searchMoves[ply][0].move = searchMoves[ply][i].move;
+            board.tt.set(
+                board.zobrist, depth / PLY, Tt.LOWER_BOUND, eval, searchMoves[ply][i].move);
+            return eval;
+          }
 
-        bestEval = eval;
+          bestEval = eval;
 
-        // If the evaluation is bigger than alpha (but less than beta) this is our new best move
-        if (eval > alpha) {
-          bestMove = searchMoves[ply][i].move;
-          evalType = Tt.EXACT;
-          alpha = eval;
+          // If the evaluation is bigger than alpha (but less than beta) this is our new best move
+          if (eval > alpha) {
+            bestMove = searchMoves[ply][i].move;
+            evalType = Tt.EXACT;
+            alpha = eval;
+          }
         }
       }
     }
@@ -318,15 +364,8 @@ public class Search {
       if (Move.special(searchMoves[ply][i].move) == SPECIAL_PROMO) {
         // High value, order queening first
         searchMoves[ply][i].score = 250000;
-      } else if (Move.special(searchMoves[ply][i].move) == SPECIAL_EP) {
-        // If the move is en passant we know the captured pieces and capturer are both pawns, so
-        // just take the pawn value on both (doesn't matter which color since the value is the same)
-        searchMoves[ply][i].score =
-            256 * Evaluation.PIECE_ABS_VALUE[WP] - Evaluation.PIECE_ABS_VALUE[WP];
       } else {
-        searchMoves[ply][i].score =
-            256 * Evaluation.PIECE_ABS_VALUE[board.board[Move.to(searchMoves[ply][i].move)]]
-                - Evaluation.PIECE_ABS_VALUE[board.board[Move.from(searchMoves[ply][i].move)]];
+        searchMoves[ply][i].score = Evaluation.getMvvLva(board, searchMoves[ply][i].move);
       }
     }
 
@@ -336,7 +375,7 @@ public class Search {
 
       board.make(searchMoves[ply][i].move);
 
-      // Since we're using pseudolegal captures, need to check if the side that just made a move
+      // Since we're using pseudolegal moves, need to check if the side that just made a move
       // is now in check, if so the move is not legal so skip searching it
       if (board.isInCheck(board.toMove == WHITE ? BLACK : WHITE)) {
         board.unmake(searchMoves[ply][i].move);
