@@ -13,6 +13,12 @@ import static com.apptinus.sagan.board.Move.F1;
 import static com.apptinus.sagan.board.Move.F8;
 import static com.apptinus.sagan.board.Move.G1;
 import static com.apptinus.sagan.board.Move.G8;
+import static com.apptinus.sagan.board.Move.PROMO_B;
+import static com.apptinus.sagan.board.Move.PROMO_N;
+import static com.apptinus.sagan.board.Move.PROMO_Q;
+import static com.apptinus.sagan.board.Move.PROMO_R;
+import static com.apptinus.sagan.board.Move.SPECIAL_NONE;
+import static com.apptinus.sagan.board.Move.SPECIAL_PROMO;
 import static com.apptinus.sagan.board.Move.WHITE;
 import static com.apptinus.sagan.board.Move.ea;
 import static com.apptinus.sagan.board.Move.m;
@@ -92,10 +98,11 @@ public class MoveGen {
     magicBishopMoves = MagicBitBoard.generateMagiBishopMoves(bishopDeltas);
   }
 
-  public static int genMoves(Board board, Move[] moves, int startIndex) {
-    int totalPseudoMoves = genPseudoLegal(board, moves);
+  public static int genAllLegalMoves(Board board, Move[] moves, int startIndex) {
+    int pseudoIndex = genPseudoLegalCaptures(board, moves, 0);
+    pseudoIndex = genPseudoLegalNonCaptures(board, moves, pseudoIndex);
     int totalLegalMoves = 0;
-    for (int i = 0; i < totalPseudoMoves + startIndex; i++) {
+    for (int i = 0; i < pseudoIndex + startIndex; i++) {
       Move move = moves[i];
       int mover = board.toMove;
       board.make(move.move);
@@ -113,28 +120,48 @@ public class MoveGen {
   public static int genPseudoLegalCaptures(Board board, Move[] moves, int movesIdx) {
     if (board.toMove == WHITE) {
       // Statics
-      movesIdx = genCaptureTargets(board.pieces[Board.WN], knightDeltas, board.bPieces,
-        ~board.wPieces,
-      moves,
-        movesIdx);
-      movesIdx = genCaptureTargets(board.pieces[Board.WK], kingDeltas, board.bPieces, ~board.wPieces, moves, movesIdx);
+      movesIdx =
+          genCaptureTargets(
+              board.pieces[Board.WN],
+              knightDeltas,
+              board.bPieces & ~board.wPieces,
+              moves,
+              movesIdx);
+      movesIdx =
+          genCaptureTargets(
+              board.pieces[Board.WK], kingDeltas, board.bPieces & ~board.wPieces, moves, movesIdx);
 
       // Sliding
       movesIdx =
-          genCaptureTargetsRooks(board.pieces[Board.WR], board.allPieces, board.bPieces, ~board.wPieces, moves,
-            movesIdx);
+          genCaptureTargetsRooks(
+              board.pieces[Board.WR],
+              board.allPieces,
+              board.bPieces & ~board.wPieces,
+              moves,
+              movesIdx);
       movesIdx =
           genCaptureTargetsBishops(
-              board.pieces[Board.WB], board.allPieces, board.bPieces, ~board.wPieces, moves, movesIdx);
+              board.pieces[Board.WB],
+              board.allPieces,
+              board.bPieces & ~board.wPieces,
+              moves,
+              movesIdx);
       movesIdx =
-          genCaptureTargetsRooks(board.pieces[Board.WQ], board.allPieces, board.bPieces, ~board.wPieces, moves,
-            movesIdx);
+          genCaptureTargetsRooks(
+              board.pieces[Board.WQ],
+              board.allPieces,
+              board.bPieces & ~board.wPieces,
+              moves,
+              movesIdx);
       movesIdx =
           genCaptureTargetsBishops(
-              board.pieces[Board.WQ], board.allPieces, board.bPieces, ~board.wPieces, moves, movesIdx);
+              board.pieces[Board.WQ],
+              board.allPieces,
+              board.bPieces & ~board.wPieces,
+              moves,
+              movesIdx);
 
       // Pawns
-
       movesIdx =
           genPawnTargets(board.pieces[WP], pawnWhiteCaptureDeltas, board.bPieces, moves, movesIdx);
 
@@ -150,42 +177,42 @@ public class MoveGen {
       // Statics
       movesIdx =
           genCaptureTargets(
-              board.pieces[Board.BN], knightDeltas, board.wPieces, ~board.bPieces, moves, movesIdx);
+              board.pieces[Board.BN],
+              knightDeltas,
+              board.wPieces & ~board.bPieces,
+              moves,
+              movesIdx);
       movesIdx =
           genCaptureTargets(
-              board.pieces[Board.BK], kingDeltas, board.wPieces, ~board.bPieces, moves, movesIdx);
+              board.pieces[Board.BK], kingDeltas, board.wPieces & ~board.bPieces, moves, movesIdx);
 
       // Sliding
       movesIdx =
           genCaptureTargetsRooks(
               board.pieces[Board.BR],
               board.allPieces,
-              board.wPieces,
-              ~board.bPieces,
+              board.wPieces & ~board.bPieces,
               moves,
               movesIdx);
       movesIdx =
           genCaptureTargetsBishops(
               board.pieces[Board.BB],
               board.allPieces,
-              board.wPieces,
-              ~board.bPieces,
+              board.wPieces & ~board.bPieces,
               moves,
               movesIdx);
       movesIdx =
           genCaptureTargetsRooks(
               board.pieces[Board.BQ],
               board.allPieces,
-              board.wPieces,
-              ~board.bPieces,
+              board.wPieces & ~board.bPieces,
               moves,
               movesIdx);
       movesIdx =
           genCaptureTargetsBishops(
               board.pieces[Board.BQ],
               board.allPieces,
-              board.wPieces,
-              ~board.bPieces,
+              board.wPieces & ~board.bPieces,
               moves,
               movesIdx);
 
@@ -206,24 +233,49 @@ public class MoveGen {
     return movesIdx;
   }
 
-  public static int genPseudoLegal(Board board, Move[] moves) {
-    int movesIdx = 0;
+  public static int genPseudoLegalNonCaptures(Board board, Move[] moves, int movesIdx) {
     if (board.toMove == WHITE) {
       // Statics
-      movesIdx = genTargets(board.pieces[Board.WN], knightDeltas, ~board.wPieces, moves, movesIdx);
-      movesIdx = genTargets(board.pieces[Board.WK], kingDeltas, ~board.wPieces, moves, movesIdx);
+      movesIdx =
+          genCaptureTargets(
+              board.pieces[Board.WN],
+              knightDeltas,
+              ~board.bPieces & ~board.wPieces,
+              moves,
+              movesIdx);
+      movesIdx =
+          genCaptureTargets(
+              board.pieces[Board.WK], kingDeltas, ~board.bPieces & ~board.wPieces, moves, movesIdx);
 
       // Sliding
       movesIdx =
-          genTargetsRooks(board.pieces[Board.WR], board.allPieces, ~board.wPieces, moves, movesIdx);
+          genCaptureTargetsRooks(
+              board.pieces[Board.WR],
+              board.allPieces,
+              ~board.bPieces & ~board.wPieces,
+              moves,
+              movesIdx);
       movesIdx =
-          genTargetsBishops(
-              board.pieces[Board.WB], board.allPieces, ~board.wPieces, moves, movesIdx);
+          genCaptureTargetsBishops(
+              board.pieces[Board.WB],
+              board.allPieces,
+              ~board.bPieces & ~board.wPieces,
+              moves,
+              movesIdx);
       movesIdx =
-          genTargetsRooks(board.pieces[Board.WQ], board.allPieces, ~board.wPieces, moves, movesIdx);
+          genCaptureTargetsRooks(
+              board.pieces[Board.WQ],
+              board.allPieces,
+              ~board.bPieces & ~board.wPieces,
+              moves,
+              movesIdx);
       movesIdx =
-          genTargetsBishops(
-              board.pieces[Board.WQ], board.allPieces, ~board.wPieces, moves, movesIdx);
+          genCaptureTargetsBishops(
+              board.pieces[Board.WQ],
+              board.allPieces,
+              ~board.bPieces & ~board.wPieces,
+              moves,
+              movesIdx);
 
       // Pawns
       long pawnsAbleToPush = so(~board.allPieces) & board.pieces[WP];
@@ -231,18 +283,7 @@ public class MoveGen {
           so(~board.allPieces & so(~board.allPieces & 0xFF000000)) & board.pieces[WP] & 0xFF00;
 
       movesIdx = genPawnTargets(pawnsAbleToPush, 8, moves, movesIdx);
-      movesIdx = genTargets(pawsAbleToPushPush, 16, moves, movesIdx);
-      movesIdx =
-          genPawnTargets(board.pieces[WP], pawnWhiteCaptureDeltas, board.bPieces, moves, movesIdx);
-
-      if (board.ep != -1) {
-        movesIdx =
-            genEp(
-                board.pieces[WP] & (soEa(setBit(board.ep)) | soWe(setBit(board.ep))),
-                board.ep,
-                moves,
-                movesIdx);
-      }
+      movesIdx = genPawnTargets(pawsAbleToPushPush, 16, moves, movesIdx);
 
       // Castling
       if ((board.wCastle & 0b01L) != 0
@@ -259,20 +300,46 @@ public class MoveGen {
       }
     } else {
       // Statics
-      movesIdx = genTargets(board.pieces[Board.BN], knightDeltas, ~board.bPieces, moves, movesIdx);
-      movesIdx = genTargets(board.pieces[Board.BK], kingDeltas, ~board.bPieces, moves, movesIdx);
+      movesIdx =
+          genCaptureTargets(
+              board.pieces[Board.BN],
+              knightDeltas,
+              ~board.wPieces & ~board.bPieces,
+              moves,
+              movesIdx);
+      movesIdx =
+          genCaptureTargets(
+              board.pieces[Board.BK], kingDeltas, ~board.wPieces & ~board.bPieces, moves, movesIdx);
 
       // Sliding
       movesIdx =
-          genTargetsRooks(board.pieces[Board.BR], board.allPieces, ~board.bPieces, moves, movesIdx);
+          genCaptureTargetsRooks(
+              board.pieces[Board.BR],
+              board.allPieces,
+              ~board.wPieces & ~board.bPieces,
+              moves,
+              movesIdx);
       movesIdx =
-          genTargetsBishops(
-              board.pieces[Board.BB], board.allPieces, ~board.bPieces, moves, movesIdx);
+          genCaptureTargetsBishops(
+              board.pieces[Board.BB],
+              board.allPieces,
+              ~board.wPieces & ~board.bPieces,
+              moves,
+              movesIdx);
       movesIdx =
-          genTargetsRooks(board.pieces[Board.BQ], board.allPieces, ~board.bPieces, moves, movesIdx);
+          genCaptureTargetsRooks(
+              board.pieces[Board.BQ],
+              board.allPieces,
+              ~board.wPieces & ~board.bPieces,
+              moves,
+              movesIdx);
       movesIdx =
-          genTargetsBishops(
-              board.pieces[Board.BQ], board.allPieces, ~board.bPieces, moves, movesIdx);
+          genCaptureTargetsBishops(
+              board.pieces[Board.BQ],
+              board.allPieces,
+              ~board.wPieces & ~board.bPieces,
+              moves,
+              movesIdx);
 
       // Pawns
       long pawnsAbleToPush = no(~board.allPieces) & board.pieces[BP];
@@ -282,18 +349,7 @@ public class MoveGen {
               & 0xFF000000000000L;
 
       movesIdx = genPawnTargets(pawnsAbleToPush, -8, moves, movesIdx);
-      movesIdx = genTargets(pawsAbleToPushPush, -16, moves, movesIdx);
-      movesIdx =
-          genPawnTargets(board.pieces[BP], pawnBlackCaptureDeltas, board.wPieces, moves, movesIdx);
-
-      if (board.ep != -1) {
-        movesIdx =
-            genEp(
-                board.pieces[BP] & (noEa(setBit(board.ep)) | noWe(setBit(board.ep))),
-                board.ep,
-                moves,
-                movesIdx);
-      }
+      movesIdx = genPawnTargets(pawsAbleToPushPush, -16, moves, movesIdx);
 
       // Castling
       if ((board.bCastle & 0b01L) != 0
@@ -313,29 +369,40 @@ public class MoveGen {
     return movesIdx;
   }
 
-  private static int genTargetsRooks(
-      long pieces, long allPieces, long antiFriendlies, Move[] moves, int movesIdx) {
-    int from;
-    while ((from = next(pieces)) >= 0) {
-      int to;
-      int magicIndex = MagicBitBoard.magicIndexRook(allPieces, MoveGen.rookDeltas[from], from);
-      long delta = magicRookMoves[from][magicIndex] & antiFriendlies;
-      while ((to = next(delta)) >= 0) {
-        moves[movesIdx++].move = m(from, to, 0, 0);
-        delta = unset(delta, to);
-      }
-      pieces = unset(pieces, from);
+  public static int genPseudoLegalQueenPromotions(Board board, Move[] moves, int movesIdx) {
+    if (board.toMove == WHITE) {
+      // Pawns
+      long pawnsAbleToPushToLastRank = so(~board.allPieces) & board.pieces[WP] & 0xff000000000000L;
+
+      movesIdx = genPawnTargets(pawnsAbleToPushToLastRank, 8, moves, movesIdx);
+      movesIdx =
+          genPawnTargetsQueenPromoOnly(
+              board.pieces[WP] & 0xff000000000000L,
+              pawnWhiteCaptureDeltas,
+              board.bPieces,
+              moves,
+              movesIdx);
+
+    } else {
+      // Pawns
+      long pawnsAbleToPushToLastRank = no(~board.allPieces) & board.pieces[BP] & 0xff00L;
+
+      movesIdx = genPawnTargets(pawnsAbleToPushToLastRank, -8, moves, movesIdx);
+      movesIdx =
+          genPawnTargetsQueenPromoOnly(
+              board.pieces[BP] & 0xff00L, pawnBlackCaptureDeltas, board.wPieces, moves, movesIdx);
     }
+
     return movesIdx;
   }
 
   private static int genCaptureTargetsRooks(
-      long pieces, long allPieces, long enemies, long antiFriendlies, Move[] moves, int movesIdx) {
+      long pieces, long allPieces, long onlyToTheseSquares, Move[] moves, int movesIdx) {
     int from;
     while ((from = next(pieces)) >= 0) {
       int to;
       int magicIndex = MagicBitBoard.magicIndexRook(allPieces, MoveGen.rookDeltas[from], from);
-      long delta = magicRookMoves[from][magicIndex] & antiFriendlies & enemies;
+      long delta = magicRookMoves[from][magicIndex] & onlyToTheseSquares;
       while ((to = next(delta)) >= 0) {
         moves[movesIdx++].move = m(from, to, 0, 0);
         delta = unset(delta, to);
@@ -357,30 +424,13 @@ public class MoveGen {
     return attacks;
   }
 
-  private static int genTargetsBishops(
-      long pieces, long allPieces, long antiFriendlies, Move[] moves, int movesIdx) {
-    int from;
-    while ((from = next(pieces)) >= 0) {
-      int to;
-      int magicIndex = MagicBitBoard.magicIndexBishop(allPieces, MoveGen.bishopDeltas[from], from);
-      long delta = magicBishopMoves[from][magicIndex] & antiFriendlies;
-      while ((to = next(delta)) >= 0) {
-        moves[movesIdx++].move = m(from, to, 0, 0);
-        delta = unset(delta, to);
-      }
-      pieces = unset(pieces, from);
-    }
-
-    return movesIdx;
-  }
-
   private static int genCaptureTargetsBishops(
-      long pieces, long allPieces, long enemies, long antiFriendlies, Move[] moves, int movesIdx) {
+      long pieces, long allPieces, long onlyToTheseSquares, Move[] moves, int movesIdx) {
     int from;
     while ((from = next(pieces)) >= 0) {
       int to;
       int magicIndex = MagicBitBoard.magicIndexBishop(allPieces, MoveGen.bishopDeltas[from], from);
-      long delta = magicBishopMoves[from][magicIndex] & antiFriendlies & enemies;
+      long delta = magicBishopMoves[from][magicIndex] & onlyToTheseSquares;
       while ((to = next(delta)) >= 0) {
         moves[movesIdx++].move = m(from, to, 0, 0);
         delta = unset(delta, to);
@@ -404,42 +454,16 @@ public class MoveGen {
     return attacks;
   }
 
-  private static int genTargets(
-      long pieces, long[] deltas, long antiFriendlies, Move[] moves, int movesIdx) {
-    int n;
-    while ((n = next(pieces)) >= 0) {
-      int na;
-      long delta = deltas[n] & antiFriendlies;
-      while ((na = next(delta)) >= 0) {
-        moves[movesIdx++].move = m(n, na, 0, 0);
-        delta = unset(delta, na);
-      }
-      pieces = unset(pieces, n);
-    }
-
-    return movesIdx;
-  }
-
   private static int genCaptureTargets(
-      long pieces, long[] deltas, long enemies, long antiFriendlies, Move[] moves, int movesIdx) {
+      long pieces, long[] deltas, long onlyToTheseSquares, Move[] moves, int movesIdx) {
     int n;
     while ((n = next(pieces)) >= 0) {
       int na;
-      long delta = deltas[n] & antiFriendlies & enemies;
+      long delta = deltas[n] & onlyToTheseSquares;
       while ((na = next(delta)) >= 0) {
         moves[movesIdx++].move = m(n, na, 0, 0);
         delta = unset(delta, na);
       }
-      pieces = unset(pieces, n);
-    }
-
-    return movesIdx;
-  }
-
-  private static int genTargets(long pieces, int delta, Move[] moves, int movesIdx) {
-    int n;
-    while ((n = next(pieces)) >= 0) {
-      moves[movesIdx++].move = m(n, n + delta, 0, 0);
       pieces = unset(pieces, n);
     }
 
@@ -455,12 +479,33 @@ public class MoveGen {
       while ((to = next(delta)) >= 0) {
         if ((setBit(to) & 0xFF000000000000FFL) != 0) {
           // Reached first or last rank, pawn promotes
-          moves[movesIdx++].move = m(from, to, 1, 0);
-          moves[movesIdx++].move = m(from, to, 1, 1);
-          moves[movesIdx++].move = m(from, to, 1, 2);
-          moves[movesIdx++].move = m(from, to, 1, 3);
+          moves[movesIdx++].move = m(from, to, SPECIAL_PROMO, PROMO_N);
+          moves[movesIdx++].move = m(from, to, SPECIAL_PROMO, PROMO_B);
+          moves[movesIdx++].move = m(from, to, SPECIAL_PROMO, PROMO_R);
+          moves[movesIdx++].move = m(from, to, SPECIAL_PROMO, PROMO_Q);
         } else {
-          moves[movesIdx++].move = m(from, to, 0, 0);
+          moves[movesIdx++].move = m(from, to, SPECIAL_NONE, 0);
+        }
+        delta = unset(delta, to);
+      }
+      pieces = unset(pieces, from);
+    }
+
+    return movesIdx;
+  }
+
+  private static int genPawnTargetsQueenPromoOnly(
+      long pieces, long[] deltas, long enemies, Move[] moves, int movesIdx) {
+    int from;
+    while ((from = next(pieces)) >= 0) {
+      int to;
+      long delta = deltas[from] & enemies;
+      while ((to = next(delta)) >= 0) {
+        if ((setBit(to) & 0xFF000000000000FFL) != 0) {
+          // Reached first or last rank, pawn promotes
+          moves[movesIdx++].move = m(from, to, SPECIAL_PROMO, PROMO_Q);
+        } else {
+          moves[movesIdx++].move = m(from, to, SPECIAL_NONE, 0);
         }
         delta = unset(delta, to);
       }
@@ -476,12 +521,12 @@ public class MoveGen {
       int to = from + delta;
       if ((setBit(to) & 0xFF000000000000FFL) != 0) {
         // Reached first or last rank, pawn promotes
-        moves[movesIdx++].move = m(from, to, 1, 0);
-        moves[movesIdx++].move = m(from, to, 1, 1);
-        moves[movesIdx++].move = m(from, to, 1, 2);
-        moves[movesIdx++].move = m(from, to, 1, 3);
+        moves[movesIdx++].move = m(from, to, SPECIAL_PROMO, PROMO_N);
+        moves[movesIdx++].move = m(from, to, SPECIAL_PROMO, PROMO_B);
+        moves[movesIdx++].move = m(from, to, SPECIAL_PROMO, PROMO_R);
+        moves[movesIdx++].move = m(from, to, SPECIAL_PROMO, PROMO_Q);
       } else {
-        moves[movesIdx++].move = m(from, from + delta, 0, 0);
+        moves[movesIdx++].move = m(from, from + delta, SPECIAL_NONE, 0);
       }
       pieces = unset(pieces, from);
     }
@@ -498,6 +543,8 @@ public class MoveGen {
 
     return movesIdx;
   }
+
+  // Masks
 
   public static long bishopAttackMask(int square) {
     return (diagonalMask(square) ^ antiDiagMask(square)) & 0x7e7e7e7e7e7e00L;

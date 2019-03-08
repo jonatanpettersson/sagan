@@ -47,7 +47,7 @@ public class Perft {
     Move[] moves = new Move[256];
 
     for (int i = 0; i < 256; i++) moves[i] = new Move();
-    int totalMoves = MoveGen.genMoves(board, moves, 0);
+    int totalMoves = MoveGen.genAllLegalMoves(board, moves, 0);
     Long[] children = new Long[256];
 
     for (int i = 0; i < totalMoves; i++) {
@@ -80,7 +80,7 @@ public class Perft {
 
     Move[] moves = new Move[256];
     for (int i = 0; i < 256; i++) moves[i] = new Move();
-    int totalMoves = MoveGen.genMoves(board, moves, 0);
+    int totalMoves = MoveGen.genAllLegalMoves(board, moves, 0);
 
     for (int i = 0; i < totalMoves; i++) {
       board.make(moves[i].move);

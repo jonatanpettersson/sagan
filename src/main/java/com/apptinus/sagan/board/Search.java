@@ -33,14 +33,14 @@ public class Search {
     searchMoves = new Move[64][256];
     for (int i = 0; i < searchMoves.length; i++)
       for (int j = 0; j < searchMoves[i].length; j++) searchMoves[i][j] = new Move();
-    if (MoveGen.genMoves(board, searchMoves[0], 0) == 0) return finalEval;
+    if (MoveGen.genAllLegalMoves(board, searchMoves[0], 0) == 0) return finalEval;
 
     return iterativeSearch(board);
   }
 
   private static Eval iterativeSearch(Board board) {
 
-    int rootMovesCount = MoveGen.genMoves(board, searchMoves[0], 0);
+    int rootMovesCount = MoveGen.genAllLegalMoves(board, searchMoves[0], 0);
     for (int i = 0; i < rootMovesCount; i++) {
       board.make(searchMoves[0][i].move);
       searchMoves[0][i].score = -alphaBeta(board, PLY, -INFINITY, INFINITY, false, 1);
@@ -219,12 +219,12 @@ public class Search {
 
     // ProbedMove will be set since we probed above when looking for cutoffs (make sure this is
     // still done if moving stuff around)
-//    int hashMove = board.tt.getProbedMove();
+    int hashMove = board.tt.getProbedMove();
 
-    //    if(hashMove == 0 && beta - alpha > 1 && depth/PLY >= 5) {
-    //      alphaBeta(board, depth-2*PLY, alpha, beta, false, ply+1);
-    //      hashMove = searchMoves[ply+1][0].move;
-    //    }
+//    if (hashMove == 0 && beta - alpha > 1 && depth / PLY >= 5) {
+//      alphaBeta(board, depth - 2 * PLY, alpha, beta, false, ply + 1);
+//      hashMove = searchMoves[ply + 1][0].move;
+//    }
 
     int evalType = Tt.UPPER_BOUND;
     int bestEval = -INFINITY;
@@ -232,7 +232,7 @@ public class Search {
     int currentMovesCount;
     int startIndex = 0;
 
-    currentMovesCount = MoveGen.genMoves(board, searchMoves[ply], 0);
+    currentMovesCount = MoveGen.genAllLegalMoves(board, searchMoves[ply], 0);
 
     // Go through the generated moves one by one
     for (int i = startIndex; i < currentMovesCount; i++) {
@@ -278,7 +278,7 @@ public class Search {
           alpha = eval;
         }
       }
-    } // End for loop
+    }
 
     // If there wasn't a legal move, it's either stalemate or checkmate
     if (searchedMoves == 0) {
