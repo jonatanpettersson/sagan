@@ -43,7 +43,7 @@ public class Search {
     int rootMovesCount = MoveGen.genMoves(board, searchMoves[0], 0);
     for (int i = 0; i < rootMovesCount; i++) {
       board.make(searchMoves[0][i].move);
-      searchMoves[0][i].score = -alphaBeta(board, PLY, -INFINITY, INFINITY, 1);
+      searchMoves[0][i].score = -alphaBeta(board, PLY, -INFINITY, INFINITY, false, 1);
       board.unmake(searchMoves[0][i].move);
     }
 
@@ -131,7 +131,7 @@ public class Search {
 
       supervisor.reportThinkingCurrentMove(searchMoves[0][i].move, searchedMoves);
 
-      eval = -alphaBeta(board, depth - PLY, -beta, -alpha, 1);
+      eval = -alphaBeta(board, depth - PLY, -beta, -alpha, false, 1);
 
       searchedMoves++;
 
@@ -162,7 +162,8 @@ public class Search {
     return bestMove;
   }
 
-  private static int alphaBeta(Board board, int depth, int alpha, int beta, int ply) {
+  private static int alphaBeta(
+      Board board, int depth, int alpha, int beta, boolean allowNull, int ply) {
     int bestMove = 0;
     int eval;
 
@@ -191,7 +192,39 @@ public class Search {
       return quiesce(board, alpha, beta, ply);
     }
 
+    boolean threat = false;
+    if (beta - alpha <= 1
+        && // non-PV node
+        allowNull
+        && // Don't do two null moves in a row
+        !isInCheck
+        && depth > PLY
+        && Evaluation.isPawnEnding(board)) {
+
+      int R = (depth > 6 * PLY) ? PLY * 3 : PLY * 2;
+
+      board.nullmoveToggle();
+      eval = -alphaBeta(board, depth - PLY - R, -beta, -beta + 1, false, ply + 1);
+      board.nullmoveToggle();
+
+      if (eval >= beta) {
+        return eval;
+      }
+      if (eval <= -MATE_BOUND) {
+        threat = true;
+      }
+    }
+
     if (supervisor.shouldStopDetected()) return 0;
+
+    // ProbedMove will be set since we probed above when looking for cutoffs (make sure this is
+    // still done if moving stuff around)
+//    int hashMove = board.tt.getProbedMove();
+
+    //    if(hashMove == 0 && beta - alpha > 1 && depth/PLY >= 5) {
+    //      alphaBeta(board, depth-2*PLY, alpha, beta, false, ply+1);
+    //      hashMove = searchMoves[ply+1][0].move;
+    //    }
 
     int evalType = Tt.UPPER_BOUND;
     int bestEval = -INFINITY;
@@ -214,14 +247,14 @@ public class Search {
 
       if (searchedMoves >= 1) {
         // PVS search
-        eval = -alphaBeta(board, depth - PLY, -alpha - 1, -alpha, ply + 1);
+        eval = -alphaBeta(board, depth - PLY, -alpha - 1, -alpha, true, ply + 1);
 
         if (eval > alpha && eval < beta) {
           // Full depth search
-          eval = -alphaBeta(board, depth - PLY, -beta, -alpha, ply + 1);
+          eval = -alphaBeta(board, depth - PLY, -beta, -alpha, true, ply + 1);
         }
       } else {
-        eval = -alphaBeta(board, depth - PLY, -beta, -alpha, ply + 1);
+        eval = -alphaBeta(board, depth - PLY, -beta, -alpha, true, ply + 1);
       }
 
       searchedMoves++;

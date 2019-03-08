@@ -66,6 +66,17 @@ public class Evaluation {
     }
   }
 
+  public static boolean isPawnEnding(Board board) {
+    return Bitops.population(board.pieces[WN]) == 0
+        && Bitops.population(board.pieces[WB]) == 0
+        && Bitops.population(board.pieces[WR]) == 0
+        && Bitops.population(board.pieces[WQ]) == 0
+        && Bitops.population(board.pieces[BN]) == 0
+        && Bitops.population(board.pieces[BB]) == 0
+        && Bitops.population(board.pieces[BR]) == 0
+        && Bitops.population(board.pieces[BQ]) == 0;
+  }
+
   public static String getEvalInfo(Board board) {
     String evalString = "";
     evalString += evaluate(board);
