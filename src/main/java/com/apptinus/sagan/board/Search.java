@@ -56,7 +56,7 @@ public class Search {
       Move bestMove = alphaBetaRoot(board, currentDepth * PLY, alpha, beta, rootMovesCount);
       int eval = bestMove.score;
 
-      if (supervisor.checkShouldStop()) {
+      if (supervisor.shouldStopDetected()) {
         break;
       }
 
