@@ -3,6 +3,7 @@ package com.apptinus.sagan.board;
 import static com.apptinus.sagan.board.Board.WP;
 import static com.apptinus.sagan.board.Move.BLACK;
 import static com.apptinus.sagan.board.Move.SPECIAL_EP;
+import static com.apptinus.sagan.board.Move.SPECIAL_PROMO;
 import static com.apptinus.sagan.board.Move.WHITE;
 
 import ch.qos.logback.classic.Logger;
@@ -221,10 +222,10 @@ public class Search {
     // still done if moving stuff around)
     int hashMove = board.tt.getProbedMove();
 
-//    if (hashMove == 0 && beta - alpha > 1 && depth / PLY >= 5) {
-//      alphaBeta(board, depth - 2 * PLY, alpha, beta, false, ply + 1);
-//      hashMove = searchMoves[ply + 1][0].move;
-//    }
+    //    if (hashMove == 0 && beta - alpha > 1 && depth / PLY >= 5) {
+    //      alphaBeta(board, depth - 2 * PLY, alpha, beta, false, ply + 1);
+    //      hashMove = searchMoves[ply + 1][0].move;
+    //    }
 
     int evalType = Tt.UPPER_BOUND;
     int bestEval = -INFINITY;
@@ -309,10 +310,15 @@ public class Search {
 
     if (supervisor.shouldStopDetected()) return 0;
 
-    int currentMoveCount = MoveGen.genPseudoLegalCaptures(board, searchMoves[ply], 0);
+    int currentMoveIndex = MoveGen.genPseudoLegalCaptures(board, searchMoves[ply], 0);
+    currentMoveIndex =
+        MoveGen.genPseudoLegalQueenPromotions(board, searchMoves[ply], currentMoveIndex);
 
-    for (int i = 0; i < currentMoveCount; i++) {
-      if (Move.special(searchMoves[ply][i].move) == SPECIAL_EP) {
+    for (int i = 0; i < currentMoveIndex; i++) {
+      if (Move.special(searchMoves[ply][i].move) == SPECIAL_PROMO) {
+        // High value, order queening first
+        searchMoves[ply][i].score = 250000;
+      } else if (Move.special(searchMoves[ply][i].move) == SPECIAL_EP) {
         // If the move is en passant we know the captured pieces and capturer are both pawns, so
         // just take the pawn value on both (doesn't matter which color since the value is the same)
         searchMoves[ply][i].score =
@@ -324,9 +330,9 @@ public class Search {
       }
     }
 
-    sortMoves(searchMoves[ply], 0, currentMoveCount);
+    sortMoves(searchMoves[ply], 0, currentMoveIndex);
 
-    for (int i = 0; i < currentMoveCount; i++) {
+    for (int i = 0; i < currentMoveIndex; i++) {
 
       board.make(searchMoves[ply][i].move);
 
