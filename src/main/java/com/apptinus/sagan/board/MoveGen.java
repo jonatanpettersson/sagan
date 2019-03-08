@@ -671,15 +671,15 @@ public class MoveGen {
   }
 
   // The following four methods are ported from https://www.chessprogramming.org/On_an_empty_Board
-  private static long rankMask(int sq) {
+  public static long rankMask(int sq) {
     return 0xffL << (sq & 56L);
   }
 
-  private static long fileMask(int sq) {
+  public static long fileMask(int sq) {
     return 0x0101010101010101L << (sq & 7L);
   }
 
-  private static long diagonalMask(int sq) {
+  public static long diagonalMask(int sq) {
     long maindia = 0x8040201008040201L;
     long diag = 8L * (sq & 7L) - (sq & 56L);
     long nort = -diag & (diag >>> 31L);
@@ -687,7 +687,7 @@ public class MoveGen {
     return (maindia >>> sout) << nort;
   }
 
-  private static long antiDiagMask(int sq) {
+  public static long antiDiagMask(int sq) {
     long maindia = 0x0102040810204080L;
     long diag = 56L - 8L * (sq & 7L) - (sq & 56L);
     long nort = -diag & (diag >>> 31L);

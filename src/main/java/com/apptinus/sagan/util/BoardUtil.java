@@ -276,6 +276,14 @@ public class BoardUtil {
     return file + rank * 8;
   }
 
+  public static int squareToRank(int sq) {
+    return sq / 8;
+  }
+
+  public static int squareToFile(int sq) {
+    return sq % 8;
+  }
+
   public static int notationToSquare(String notation) {
     int file = notation.charAt(0) - 'a';
     int rank = notation.charAt(1) - '1';
