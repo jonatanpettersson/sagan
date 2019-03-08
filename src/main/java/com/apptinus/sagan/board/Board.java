@@ -365,25 +365,25 @@ public class Board {
   }
 
   public boolean isAttacked(int square, int attacker) {
-    long attackers = attackers(square, attacker);
-    return (attackers & (attacker == 0 ? wPieces : bPieces)) != 0;
+    long attackers = attackers(square, allPieces, 0xffffffffffffffffL);
+    return (attackers & (attacker == WHITE ? wPieces : bPieces)) != 0;
   }
 
-  public long attackers(final int sq, final int attacker) {
+  public long attackers(final int sq, long allPieces, long onlyOnTheseSquares) {
     long knights, kings, bishopsQueens, rooksQueens;
-    knights = pieces[WN] | pieces[BN];
-    kings = pieces[WK] | pieces[BK];
-    rooksQueens = bishopsQueens = pieces[WQ] | pieces[BQ];
-    rooksQueens |= pieces[WR] | pieces[BR];
-    bishopsQueens |= pieces[WB] | pieces[BB];
+    knights = (pieces[WN] | pieces[BN]) & onlyOnTheseSquares;
+    kings = (pieces[WK] | pieces[BK]) & onlyOnTheseSquares;
+    rooksQueens = bishopsQueens = (pieces[WQ] | pieces[BQ]) & onlyOnTheseSquares;
+    rooksQueens |= (pieces[WR] | pieces[BR]) & onlyOnTheseSquares;
+    bishopsQueens |= (pieces[WB] | pieces[BB]) & onlyOnTheseSquares;
 
-    return (MoveGen.pawnWhiteCaptureDeltas[sq] & pieces[BP])
-        | (MoveGen.pawnBlackCaptureDeltas[sq] & pieces[WP])
+    return (MoveGen.pawnWhiteCaptureDeltas[sq] & (pieces[BP] & onlyOnTheseSquares))
+        | (MoveGen.pawnBlackCaptureDeltas[sq] & (pieces[WP] & onlyOnTheseSquares))
         | (MoveGen.knightDeltas[sq] & knights)
         | (MoveGen.kingDeltas[sq] & kings)
-        | (MoveGen.genTargetsBishops(sq, allPieces, attacker == 0 ? ~bPieces : ~wPieces)
+        | (MoveGen.genTargetsBishops(sq, allPieces, ~bPieces | ~wPieces)
             & bishopsQueens)
-        | (MoveGen.genTargetsRooks(sq, allPieces, attacker == 0 ? ~bPieces : ~wPieces)
+        | (MoveGen.genTargetsRooks(sq, allPieces, ~bPieces | ~wPieces)
             & rooksQueens);
   }
 }

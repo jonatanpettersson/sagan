@@ -1,7 +1,5 @@
 package com.apptinus.sagan;
 
-import static com.apptinus.sagan.board.Move.WHITE;
-
 import ch.qos.logback.classic.Logger;
 import com.apptinus.sagan.board.Board;
 import com.apptinus.sagan.board.Evaluation;
@@ -486,7 +484,7 @@ public class Uci {
 
     Move[] legalMoves = new Move[256];
     for (int i = 0; i < 256; i++) legalMoves[i] = new Move();
-    int totalMoves = MoveGen.genMoves(board, legalMoves, 0); // All moves
+    int totalMoves = MoveGen.genAllLegalMoves(board, legalMoves, 0); // All moves
 
     for (int i = 0; i < totalMoves; i++) {
       if (BoardUtil.moveToNotation(legalMoves[i].move).equals(move)) {
@@ -502,7 +500,7 @@ public class Uci {
 //  public static String isGameOver(Board board, int[] gameHistory, int gameHistoryIndex) {
 //    Move[] legalMoves = new Move[256];
 //    for (int i = 0; i < 256; i++) legalMoves[i] = new Move();
-//    if (MoveGen.genMoves(board, legalMoves, 0) == 0) {
+//    if (MoveGen.genAllLegalMoves(board, legalMoves, 0) == 0) {
 //      if (board.isInCheck(board.toMove)) {
 //        if (board.toMove == WHITE) {
 //          return "0-1 (Black mates)";

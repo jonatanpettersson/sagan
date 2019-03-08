@@ -10,7 +10,10 @@ import static com.apptinus.sagan.board.Board.WN;
 import static com.apptinus.sagan.board.Board.WP;
 import static com.apptinus.sagan.board.Board.WQ;
 import static com.apptinus.sagan.board.Board.WR;
+import static com.apptinus.sagan.board.Move.BLACK;
+import static com.apptinus.sagan.board.Move.SPECIAL_EP;
 import static com.apptinus.sagan.board.Move.WHITE;
+import static com.apptinus.sagan.util.Bitops.unset;
 
 import com.apptinus.sagan.util.Bitops;
 
@@ -82,4 +85,16 @@ public class Evaluation {
     evalString += evaluate(board);
     return evalString;
   }
+
+  public static int getMvvLva(final Board board, final int move) {
+    if (Move.special(move) == SPECIAL_EP) {
+      // If the move is en passant we know the captured pieces and capturer are both pawns, so
+      // just take the pawn value on both (doesn't matter which color since the value is the same)
+      return 256 * Evaluation.PIECE_ABS_VALUE[WP] - Evaluation.PIECE_ABS_VALUE[WP];
+    } else {
+      return 256 * Evaluation.PIECE_ABS_VALUE[board.board[Move.to(move)]]
+          - Evaluation.PIECE_ABS_VALUE[board.board[Move.from(move)]];
+    }
+  }
+
 }
