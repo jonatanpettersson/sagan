@@ -1,6 +1,7 @@
 package com.apptinus.sagan.board;
 
 import static com.apptinus.sagan.board.Move.BLACK;
+import static com.apptinus.sagan.board.Move.SPECIAL_NONE;
 import static com.apptinus.sagan.board.Move.SPECIAL_PROMO;
 import static com.apptinus.sagan.board.Move.WHITE;
 
@@ -229,6 +230,8 @@ public class Search {
     int bestEval = -INFINITY;
     int searchedMoves = 0;
     int firstEmptyMoveIndex = 0;
+    int firstIndexAfterWinningCaptures = 0;
+    int firstIndexAfterAllCaptures = 0;
     int startIndex = 0;
 
     for (int generationState = 0; generationState <= 6; generationState++) {
@@ -236,6 +239,7 @@ public class Search {
       if (generationState == 0) {
         // Hash move
         if (hashMove == 0) continue;
+        startIndex = 0;
         searchMoves[ply][0].move = hashMove;
       } else if (generationState == 1) {
         // Queen promotions
@@ -247,7 +251,7 @@ public class Search {
         startIndex = firstEmptyMoveIndex;
         firstEmptyMoveIndex =
             MoveGen.genPseudoLegalCaptures(board, searchMoves[ply], firstEmptyMoveIndex);
-
+        firstIndexAfterAllCaptures = firstEmptyMoveIndex;
         for (int i = startIndex; i < firstEmptyMoveIndex; i++) {
           Move thisMove = searchMoves[ply][i];
 
@@ -256,21 +260,52 @@ public class Search {
           } else {
             searchMoves[ply][i].score = Evaluation.getMvvLva(board, searchMoves[ply][i].move);
           }
+
+          sortMoves(searchMoves[ply], startIndex, firstEmptyMoveIndex);
+
+          int index = 0;
+          while (index < firstEmptyMoveIndex && index == -1) {
+            if (searchMoves[ply][index].score < 0) {
+              break;
+            }
+            index++;
+          }
+
+          firstIndexAfterWinningCaptures = startIndex + index;
         }
 
       } else if (generationState == 4) {
         // Other promotions
-        startIndex = firstEmptyMoveIndex;
+        startIndex = firstIndexAfterWinningCaptures;
         firstEmptyMoveIndex =
-            MoveGen.genPseudoLegalOtherPromotions(board, searchMoves[ply], firstEmptyMoveIndex);
+            MoveGen.genPseudoLegalOtherPromotions(
+                board, searchMoves[ply], firstIndexAfterWinningCaptures);
       } else if (generationState == 5) {
         // Non-captures
         startIndex = firstEmptyMoveIndex;
         firstEmptyMoveIndex =
             MoveGen.genPseudoLegalNonCaptures(board, searchMoves[ply], firstEmptyMoveIndex);
+
+        for (int i = startIndex; i < firstEmptyMoveIndex; i++) {
+          Move thisMove = searchMoves[ply][i];
+
+          if (thisMove.move == hashMove) {
+            thisMove.score = -10000;
+          } else {
+            searchMoves[ply][i].score = 0;
+          }
+        }
+
+        sortMoves(searchMoves[ply], startIndex, firstEmptyMoveIndex);
       } else if (generationState == 6) {
         // Losing captures
-        startIndex = firstEmptyMoveIndex + 1;
+        if (firstIndexAfterWinningCaptures != -1) {
+          firstEmptyMoveIndex = firstIndexAfterWinningCaptures;
+          startIndex = firstIndexAfterAllCaptures;
+        } else {
+          startIndex = 0;
+          firstEmptyMoveIndex = 0;
+        }
       }
 
       // Go through the generated moves one by one
@@ -280,7 +315,7 @@ public class Search {
           continue; // This means the move has already been searched so skip it
         }
 
-        board.make(searchMoves[ply][i].move); // Make the move on the board
+        board.make(searchMoves[ply][i].move);
         // Since we're using pseudolegal moves, need to check if the side that just made a move
         // is now in check, if so the move is not legal so skip searching it
         if (board.isInCheck(board.toMove == WHITE ? BLACK : WHITE)) {
@@ -372,6 +407,11 @@ public class Search {
     sortMoves(searchMoves[ply], 0, currentMoveIndex);
 
     for (int i = 0; i < currentMoveIndex; i++) {
+
+      if (Move.special(searchMoves[ply][i].move) == SPECIAL_NONE
+          && Evaluation.getSee(board, searchMoves[ply][i].move) < 0) {
+        continue;
+      }
 
       board.make(searchMoves[ply][i].move);
 

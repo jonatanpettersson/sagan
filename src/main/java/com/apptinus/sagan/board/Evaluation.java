@@ -97,4 +97,91 @@ public class Evaluation {
     }
   }
 
+  public static int getSee(final Board board, final int move) {
+    int from = Move.from(move);
+    int to = Move.to(move);
+
+    // Get a bitboard with all pieces that can attack the to square (including xray)
+    long potentialBlockers = board.allPieces;
+    long attackers = board.attackers(to, potentialBlockers, 0xffffffffffffffffL);
+    long usedAttackers = 0L;
+
+    int[] score = new int[32];
+
+    if (Move.special(move) == SPECIAL_EP) {
+      score[0] = PIECE_ABS_VALUE[WP];
+    } else {
+      score[0] = PIECE_ABS_VALUE[board.board[to]];
+    }
+
+    // "Make" the first capture
+//    attackers ^= Bitops.setBit(from);
+//    if (attackers == 0) {
+//      return score[0];
+//    }
+//    usedAttackers |= Bitops.setBit(from);
+//    int toMove = board.toMove == WHITE ? BLACK : WHITE;
+//    score[1] = PIECE_ABS_VALUE[board.board[from]] - score[0];
+
+    int toMove = board.toMove;
+
+    int depth = 0;
+    do {
+      depth++;
+      attackers ^= Bitops.setBit(from);
+      usedAttackers |= Bitops.setBit(from);
+      toMove = toMove == WHITE ? BLACK : WHITE;
+      score[depth] = PIECE_ABS_VALUE[board.board[from]] - score[depth - 1];
+
+      // Add potential xray piece behind attacker
+      if ((Bitops.setBit(from) & (MoveGen.rankMask(to) ^ MoveGen.fileMask(to)))
+          != 0L) {
+        attackers |=
+            board.attackers(
+                to,
+                board.allPieces & ~usedAttackers,
+                (MoveGen.rankMask(to) ^ MoveGen.fileMask(to))
+                    & ~usedAttackers
+                    & (board.pieces[WR] | board.pieces[BR] | board.pieces[BQ] | board.pieces[WQ]));
+      } else if ((Bitops.setBit(from)
+              & (MoveGen.diagonalMask(to) ^ MoveGen.antiDiagMask(to)))
+          != 0L) {
+        attackers |=
+            board.attackers(
+                to,
+                board.allPieces & ~usedAttackers,
+                (MoveGen.diagonalMask(to) ^ MoveGen.antiDiagMask(to))
+                    & ~usedAttackers
+                    & (board.pieces[WB] | board.pieces[BB] | board.pieces[WQ] | board.pieces[BQ]));
+      }
+
+      long toMoveAttackers = attackers & (toMove == WHITE ? board.wPieces : board.bPieces);
+
+//      if (toMoveAttackers == 0) break;
+
+
+      int nextAttackerValue = 10000;
+      int thisAttackerSquare;
+      from = -1;
+      while ((thisAttackerSquare = Bitops.next(toMoveAttackers)) != -1) {
+        toMoveAttackers = unset(toMoveAttackers, thisAttackerSquare);
+        if (nextAttackerValue > PIECE_ABS_VALUE[board.board[thisAttackerSquare]]) {
+          nextAttackerValue = PIECE_ABS_VALUE[board.board[thisAttackerSquare]];
+          from = thisAttackerSquare;
+        }
+      }
+    } while(from >= 0);
+
+//    depth--;
+    while (depth > 1) {
+//      gain[d-1]= -max (-gain[d-1], gain[d])
+      depth--;
+      score[depth - 1] = -Math.max(-score[depth-1], score[depth]);
+//      if (score[depth - 1] > -score[depth]) {
+//        score[depth - 1] = -score[depth];
+//      }
+    }
+
+    return score[0];
+  }
 }
