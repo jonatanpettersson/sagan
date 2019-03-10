@@ -114,15 +114,6 @@ public class Evaluation {
       score[0] = PIECE_ABS_VALUE[board.board[to]];
     }
 
-    // "Make" the first capture
-//    attackers ^= Bitops.setBit(from);
-//    if (attackers == 0) {
-//      return score[0];
-//    }
-//    usedAttackers |= Bitops.setBit(from);
-//    int toMove = board.toMove == WHITE ? BLACK : WHITE;
-//    score[1] = PIECE_ABS_VALUE[board.board[from]] - score[0];
-
     int toMove = board.toMove;
 
     int depth = 0;
@@ -134,8 +125,7 @@ public class Evaluation {
       score[depth] = PIECE_ABS_VALUE[board.board[from]] - score[depth - 1];
 
       // Add potential xray piece behind attacker
-      if ((Bitops.setBit(from) & (MoveGen.rankMask(to) ^ MoveGen.fileMask(to)))
-          != 0L) {
+      if ((Bitops.setBit(from) & (MoveGen.rankMask(to) ^ MoveGen.fileMask(to))) != 0L) {
         attackers |=
             board.attackers(
                 to,
@@ -143,8 +133,7 @@ public class Evaluation {
                 (MoveGen.rankMask(to) ^ MoveGen.fileMask(to))
                     & ~usedAttackers
                     & (board.pieces[WR] | board.pieces[BR] | board.pieces[BQ] | board.pieces[WQ]));
-      } else if ((Bitops.setBit(from)
-              & (MoveGen.diagonalMask(to) ^ MoveGen.antiDiagMask(to)))
+      } else if ((Bitops.setBit(from) & (MoveGen.diagonalMask(to) ^ MoveGen.antiDiagMask(to)))
           != 0L) {
         attackers |=
             board.attackers(
@@ -157,9 +146,6 @@ public class Evaluation {
 
       long toMoveAttackers = attackers & (toMove == WHITE ? board.wPieces : board.bPieces);
 
-//      if (toMoveAttackers == 0) break;
-
-
       int nextAttackerValue = 10000;
       int thisAttackerSquare;
       from = -1;
@@ -170,16 +156,11 @@ public class Evaluation {
           from = thisAttackerSquare;
         }
       }
-    } while(from >= 0);
+    } while (from >= 0);
 
-//    depth--;
     while (depth > 1) {
-//      gain[d-1]= -max (-gain[d-1], gain[d])
       depth--;
-      score[depth - 1] = -Math.max(-score[depth-1], score[depth]);
-//      if (score[depth - 1] > -score[depth]) {
-//        score[depth - 1] = -score[depth];
-//      }
+      score[depth - 1] = -Math.max(-score[depth - 1], score[depth]);
     }
 
     return score[0];
