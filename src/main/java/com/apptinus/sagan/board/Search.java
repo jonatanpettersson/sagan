@@ -258,7 +258,7 @@ public class Search {
           if (thisMove.move == hashMove) {
             thisMove.score = -10000;
           } else {
-            searchMoves[ply][i].score = Evaluation.getMvvLva(board, searchMoves[ply][i].move);
+            searchMoves[ply][i].score = Evaluation.getSee(board, searchMoves[ply][i].move);
           }
 
           sortMoves(searchMoves[ply], startIndex, firstEmptyMoveIndex);
