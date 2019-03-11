@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 public class Main {
   private static Logger logger = (Logger) LoggerFactory.getLogger(Main.class);
 
-  public static final String VERSION = "v0.0.7";
+  public static final String VERSION = "v0.0.8";
 
   public static final int DEFAULT_TT_SIZE_MB = 16;
 
