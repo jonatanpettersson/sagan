@@ -8,6 +8,7 @@ import com.apptinus.sagan.board.MoveGen;
 import com.apptinus.sagan.board.Search;
 import com.apptinus.sagan.board.SearchSupervisor;
 import com.apptinus.sagan.util.BoardUtil;
+import com.apptinus.sagan.util.EpdRunner;
 import com.apptinus.sagan.util.Perft;
 import java.io.BufferedReader;
 import java.io.File;
@@ -89,7 +90,20 @@ public class Uci {
           System.out.println("Depth needs to be higher than 0,");
         else System.out.println(Perft.perft(board, Integer.parseInt(command.substring(7)), true));
       } else if (command.startsWith("runtest")) {
-        System.out.println("Not implemented yet. (testset path: " + testsetPath + ")");
+        String[] commands = command.split(" ");
+        if (commands.length != 4) {
+          System.out.println("Malformed runtest command, see help for details");
+        } else {
+          System.out.println("Starting test with file: " + commands[0]);
+          if (commands[3].equals("d")) {
+            EpdRunner.runEpdTestset(commands[1], Integer.parseInt(commands[2]), 0);
+          } else if (commands[3].equals("t")) {
+            EpdRunner.runEpdTestset(commands[1], 0, Integer.parseInt(commands[2]));
+          } else {
+            System.out.println(
+                "Malformed runtest command, see help for details (Needs d (depth) or t (time))");
+          }
+        }
       } else {
         System.out.println("Command not found.");
       }
@@ -114,7 +128,7 @@ public class Uci {
       System.out.println("");
       System.out.println("search [value] [d/t] ... ->  Search the position");
       System.out.println("");
-      System.out.println("runtest [value] [d/t] .. ->  Run the a test on the specified positions");
+      System.out.println("runtest [path] [v] [d/t] ->  Run the a test on the specified positions");
     } else if ("help quit".equals(help)) {
       System.out.println("quit");
       System.out.println("Exits Mediocre.");
@@ -176,8 +190,8 @@ public class Uci {
       System.out.println("verify the moves and give a total score.");
       System.out.println("");
       System.out.println("Example:");
-      System.out.println("runtest 5 d");
-      System.out.println("runtest 2000 t");
+      System.out.println("runtest /home/user/testset.epd 5 d");
+      System.out.println("runtest /home/user/testset.epd 2000 t");
     }
   }
 
@@ -497,39 +511,39 @@ public class Uci {
   } // END receiveMove
 
   /** Checks the board and the repetition table if the game is over */
-//  public static String isGameOver(Board board, int[] gameHistory, int gameHistoryIndex) {
-//    Move[] legalMoves = new Move[256];
-//    for (int i = 0; i < 256; i++) legalMoves[i] = new Move();
-//    if (MoveGen.genAllLegalMoves(board, legalMoves, 0) == 0) {
-//      if (board.isInCheck(board.toMove)) {
-//        if (board.toMove == WHITE) {
-//          return "0-1 (Black mates)";
-//        } else {
-//          return "1-0 (White mates)";
-//        }
-//      } else {
-//        return "1/2-1/2 (Stalemate)";
-//      }
-//    }
-//
-//    if (board.fPly >= 100) {
-//      return "1/2-1/2 (50 moves rule)";
-//    }
-//
-//    for (int i = 0; i < gameHistoryIndex; i++) {
-//      int repetitions = 0;
-//      for (int j = i + 1; j < gameHistoryIndex; j++) {
-//        if (gameHistory[i] == gameHistory[j]) repetitions++;
-//        if (repetitions == 2) {
-//          return "1/2-1/2 (Drawn by repetition)";
-//        }
-//      }
-//    }
-//
-//    if (Evaluation.drawByMaterial(board)) {
-//      return "1/2-1/2 (Drawn by material)";
-//    }
-//
-//    return "no";
-//  } // END isGameOver
+  //  public static String isGameOver(Board board, int[] gameHistory, int gameHistoryIndex) {
+  //    Move[] legalMoves = new Move[256];
+  //    for (int i = 0; i < 256; i++) legalMoves[i] = new Move();
+  //    if (MoveGen.genAllLegalMoves(board, legalMoves, 0) == 0) {
+  //      if (board.isInCheck(board.toMove)) {
+  //        if (board.toMove == WHITE) {
+  //          return "0-1 (Black mates)";
+  //        } else {
+  //          return "1-0 (White mates)";
+  //        }
+  //      } else {
+  //        return "1/2-1/2 (Stalemate)";
+  //      }
+  //    }
+  //
+  //    if (board.fPly >= 100) {
+  //      return "1/2-1/2 (50 moves rule)";
+  //    }
+  //
+  //    for (int i = 0; i < gameHistoryIndex; i++) {
+  //      int repetitions = 0;
+  //      for (int j = i + 1; j < gameHistoryIndex; j++) {
+  //        if (gameHistory[i] == gameHistory[j]) repetitions++;
+  //        if (repetitions == 2) {
+  //          return "1/2-1/2 (Drawn by repetition)";
+  //        }
+  //      }
+  //    }
+  //
+  //    if (Evaluation.drawByMaterial(board)) {
+  //      return "1/2-1/2 (Drawn by material)";
+  //    }
+  //
+  //    return "no";
+  //  } // END isGameOver
 }

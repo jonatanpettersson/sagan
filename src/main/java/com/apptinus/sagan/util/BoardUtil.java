@@ -160,19 +160,19 @@ public class BoardUtil {
     } while (i < fs[0].length() - 1);
 
     board.wPieces |=
-      board.pieces[WK]
-      | board.pieces[WQ]
-      | board.pieces[WR]
-      | board.pieces[WB]
-      | board.pieces[WN]
-      | board.pieces[WP];
+        board.pieces[WK]
+            | board.pieces[WQ]
+            | board.pieces[WR]
+            | board.pieces[WB]
+            | board.pieces[WN]
+            | board.pieces[WP];
     board.bPieces |=
-      board.pieces[BK]
-      | board.pieces[BQ]
-      | board.pieces[BR]
-      | board.pieces[BB]
-      | board.pieces[BN]
-      | board.pieces[BP];
+        board.pieces[BK]
+            | board.pieces[BQ]
+            | board.pieces[BR]
+            | board.pieces[BB]
+            | board.pieces[BN]
+            | board.pieces[BP];
     board.allPieces |= board.wPieces | board.bPieces;
 
     board.zobrist = Zobrist.getZobristKey(board);
@@ -335,6 +335,142 @@ public class BoardUtil {
     }
 
     return notation;
+  }
+
+  public static String moveToShortNotation(
+      int move, int totalMoves, Move[] legalMoves, Board board) {
+    int from = Move.from(move);
+    int to = Move.to(move);
+    int type = Move.special(move);
+    int promotion = Move.promotion(move);
+    int piece = board.board[from];
+
+    int thisFile = from % 8;
+    int thisRank = (from / 8) + 1;
+
+    boolean addFile = false;
+    boolean addRank = false;
+
+    for (int i = 0; i < totalMoves; i++) {
+      if (move == legalMoves[i].move) continue;
+
+      int otherPiece = board.board[Move.from(legalMoves[i].move)];
+
+      if (Move.to(legalMoves[i].move) == to && otherPiece == piece) {
+        int file = Move.from(legalMoves[i].move) % 8;
+        int rank = (Move.from(legalMoves[i].move) / 8) + 1;
+
+        if (thisFile != file && thisRank != rank) {
+          addFile = true;
+        }
+        if (file == thisFile) {
+          addRank = true;
+        }
+
+        if (rank == thisRank) {
+          addFile = true;
+        }
+      }
+    }
+
+    return shortNotation(
+        board.board[from],
+        from,
+        to,
+        board.board[to] != 12 || type == 2,
+        type,
+        promotion,
+        addFile,
+        addRank);
+  }
+
+  private static String shortNotation(
+      int pieceMoving,
+      int fromIndex,
+      int toIndex,
+      boolean capture,
+      int moveType,
+      int promotionPiece,
+      boolean addFile,
+      boolean addRank) {
+    final StringBuilder notation = new StringBuilder();
+
+    // Add the piece notation
+    switch (pieceMoving) {
+      case WK:
+        if (moveType == 3 && toIndex == 6) return "O-O";
+        if (moveType == 3 && toIndex == 2) return "O-O-O";
+        notation.append("K");
+        break;
+      case BK:
+        if (moveType == 3 && toIndex == 62) return "O-O";
+        if (moveType == 3 && toIndex == 58) return "O-O-O";
+        notation.append("K");
+        break;
+      case WQ:
+      case BQ:
+        notation.append("Q");
+        break;
+      case WR:
+      case BR:
+        notation.append("R");
+        break;
+      case WB:
+      case BB:
+        notation.append("B");
+        break;
+      case WN:
+      case BN:
+        notation.append("N");
+        break;
+    }
+
+    if (addFile && pieceMoving != WP && pieceMoving != BP) {
+      notation.append("abcdefgh".charAt(fromIndex % 8));
+    }
+
+    if (addRank && pieceMoving != WP && pieceMoving != BP) {
+      notation.append((fromIndex / 8) + 1);
+    }
+
+    // The move is a capture
+    if (capture) {
+      // If the moving piece is a pawn we need to add the file it's moving
+      // from
+      if ((pieceMoving == WP) || (pieceMoving == BP)) {
+        // Find the file
+        notation.append("abcdefgh".charAt(fromIndex % 8));
+      }
+      notation.append("x");
+    }
+
+    // Find the file
+    notation.append("abcdefgh".charAt(toIndex % 8));
+
+    // Add the rank
+    notation.append((toIndex / 8) + 1);
+
+    // This is not used in the opening book, should probably be removed
+    // if (moveType == 2) notation.append(" e.p.");
+
+    if (moveType == 1) {
+      switch (promotionPiece) {
+        case 0:
+          notation.append("=N");
+          break;
+        case 1:
+          notation.append("=B");
+          break;
+        case 2:
+          notation.append("=R");
+          break;
+        case 3:
+          notation.append("=Q");
+          break;
+      }
+    }
+
+    return notation.toString();
   }
 
   public static String prettyPrintBoard(Board board) {
