@@ -379,14 +379,17 @@ public class Search {
 
   private static int quiesce(Board board, int alpha, int beta, int ply) {
     int eval;
+    boolean inCheck = board.isInCheck(board.toMove == WHITE ? BLACK : WHITE);
 
     if (supervisor.checkShouldStop()) return 0;
     if (board.isDraw()) return DRAW_VALUE;
 
-    int standPatEval = Evaluation.evaluate(board);
-    if (standPatEval > alpha) {
-      if (standPatEval >= beta) return beta;
-      alpha = standPatEval;
+    if (!inCheck) {
+      int standPatEval = Evaluation.evaluate(board);
+      if (standPatEval > alpha) {
+        if (standPatEval >= beta) return beta;
+        alpha = standPatEval;
+      }
     }
 
     if (supervisor.shouldStopDetected()) return 0;
@@ -394,6 +397,11 @@ public class Search {
     int currentMoveIndex = MoveGen.genPseudoLegalCaptures(board, searchMoves[ply], 0);
     currentMoveIndex =
         MoveGen.genPseudoLegalQueenPromotions(board, searchMoves[ply], currentMoveIndex);
+
+    if (inCheck) {
+      currentMoveIndex =
+          MoveGen.genPseudoLegalNonCaptures(board, searchMoves[ply], currentMoveIndex);
+    }
 
     for (int i = 0; i < currentMoveIndex; i++) {
       if (Move.special(searchMoves[ply][i].move) == SPECIAL_PROMO) {
