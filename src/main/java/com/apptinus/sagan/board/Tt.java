@@ -1,5 +1,7 @@
 package com.apptinus.sagan.board;
 
+import com.apptinus.sagan.util.BoardUtil;
+
 public class Tt {
 
   public static final int EXACT = 0;
@@ -30,7 +32,7 @@ public class Tt {
     posZobrist[hashKey] = zobrist;
 
     posInfo[hashKey] =
-      (eval + Search.INFINITY) | (evalType << 15) | (depth << 19) | ((long)move << 25);
+        (eval + Search.INFINITY) | (evalType << 15) | (depth << 19) | ((long) move << 25);
   }
 
   public boolean probe(long zobrist) {
@@ -43,6 +45,45 @@ public class Tt {
     probedMove = (int) (posInfo[hashKey] >>> 25);
 
     return true;
+  }
+
+  public static boolean isLegalMove(Board board, int move) {
+    Move[] moves = new Move[256];
+    for (int i = 0; i < 256; i++) moves[i] = new Move();
+    int totalMoves = MoveGen.genAllLegalMoves(board, moves, 0);
+    for (int i = 0; i < totalMoves; i++) {
+      if (moves[i].move == move) return true;
+    }
+
+    return false;
+  }
+
+  public int[] collectPV(Board board, int bestMove) {
+    int[] arrayPV = new int[128];
+
+    arrayPV[0] = bestMove;
+    board.make(bestMove);
+
+    probe(board.zobrist);
+    int move = probedMove;
+
+    int i = 20;
+    int index = 1;
+    while (i > 0) {
+      if (move == 0 || !isLegalMove(board, move)) break;
+      arrayPV[index] = move;
+      board.make(move);
+      probe(board.zobrist);
+      move = probedMove;
+      i--;
+      index++;
+    }
+
+    // Unmake the moves
+    for (i = index - 1; i >= 0; i--) {
+      board.unmake(arrayPV[i]);
+    }
+    return arrayPV;
   }
 
   public int getProbedEval() {

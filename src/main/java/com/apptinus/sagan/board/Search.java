@@ -6,6 +6,7 @@ import static com.apptinus.sagan.board.Move.SPECIAL_PROMO;
 import static com.apptinus.sagan.board.Move.WHITE;
 
 import ch.qos.logback.classic.Logger;
+import com.apptinus.sagan.util.BoardUtil;
 import org.slf4j.LoggerFactory;
 
 public class Search {
@@ -92,8 +93,9 @@ public class Search {
         continue;
       }
 
-      finalEval = new Eval(new int[128], eval);
-      finalEval.line[0] = bestMove.move;
+      finalEval = new Eval(board.tt.collectPV(board, bestMove.move), eval);
+//      finalEval = new Eval(new int[128], eval);
+//      finalEval.line[0] = bestMove.move;
 
       supervisor.reportThinkingLine(currentDepth, finalEval);
 
@@ -371,8 +373,12 @@ public class Search {
       return DRAW_VALUE;
     }
 
-    searchMoves[ply][0].move = bestMove;
-    board.tt.set(board.zobrist, depth / PLY, evalType, bestEval, bestMove);
+    if (bestMove != 0) {
+      searchMoves[ply][0].move = bestMove;
+      if (!supervisor.shouldStopDetected()) {
+        board.tt.set(board.zobrist, depth / PLY, evalType, bestEval, bestMove);
+      }
+    }
 
     return alpha;
   }
