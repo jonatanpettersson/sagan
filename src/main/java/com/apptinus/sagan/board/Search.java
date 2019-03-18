@@ -6,6 +6,7 @@ import static com.apptinus.sagan.board.Move.SPECIAL_PROMO;
 import static com.apptinus.sagan.board.Move.WHITE;
 
 import ch.qos.logback.classic.Logger;
+import com.apptinus.sagan.util.BoardUtil;
 import org.slf4j.LoggerFactory;
 
 public class Search {
@@ -92,8 +93,9 @@ public class Search {
         continue;
       }
 
-      finalEval = new Eval(new int[128], eval);
-      finalEval.line[0] = bestMove.move;
+      finalEval = new Eval(board.tt.collectPV(board, bestMove.move), eval);
+//      finalEval = new Eval(new int[128], eval);
+//      finalEval.line[0] = bestMove.move;
 
       supervisor.reportThinkingLine(currentDepth, finalEval);
 
@@ -371,22 +373,29 @@ public class Search {
       return DRAW_VALUE;
     }
 
-    searchMoves[ply][0].move = bestMove;
-    board.tt.set(board.zobrist, depth / PLY, evalType, bestEval, bestMove);
+    if (bestMove != 0) {
+      searchMoves[ply][0].move = bestMove;
+      if (!supervisor.shouldStopDetected()) {
+        board.tt.set(board.zobrist, depth / PLY, evalType, bestEval, bestMove);
+      }
+    }
 
     return alpha;
   }
 
   private static int quiesce(Board board, int alpha, int beta, int ply) {
     int eval;
+    boolean inCheck = board.isInCheck(board.toMove == WHITE ? BLACK : WHITE);
 
     if (supervisor.checkShouldStop()) return 0;
     if (board.isDraw()) return DRAW_VALUE;
 
-    int standPatEval = Evaluation.evaluate(board);
-    if (standPatEval > alpha) {
-      if (standPatEval >= beta) return beta;
-      alpha = standPatEval;
+    if (!inCheck) {
+      int standPatEval = Evaluation.evaluate(board);
+      if (standPatEval > alpha) {
+        if (standPatEval >= beta) return beta;
+        alpha = standPatEval;
+      }
     }
 
     if (supervisor.shouldStopDetected()) return 0;
@@ -394,6 +403,11 @@ public class Search {
     int currentMoveIndex = MoveGen.genPseudoLegalCaptures(board, searchMoves[ply], 0);
     currentMoveIndex =
         MoveGen.genPseudoLegalQueenPromotions(board, searchMoves[ply], currentMoveIndex);
+
+    if (inCheck) {
+      currentMoveIndex =
+          MoveGen.genPseudoLegalNonCaptures(board, searchMoves[ply], currentMoveIndex);
+    }
 
     for (int i = 0; i < currentMoveIndex; i++) {
       if (Move.special(searchMoves[ply][i].move) == SPECIAL_PROMO) {
