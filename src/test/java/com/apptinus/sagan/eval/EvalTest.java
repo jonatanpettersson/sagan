@@ -1,7 +1,10 @@
 package com.apptinus.sagan.eval;
 
+import static com.apptinus.sagan.board.Move.WHITE;
+
 import com.apptinus.sagan.board.Board;
 import com.apptinus.sagan.board.Evaluation;
+import com.apptinus.sagan.board.MoveGen;
 import com.apptinus.sagan.util.BoardUtil;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +15,20 @@ import org.junit.Test;
 public class EvalTest {
 
   @Test
+  public void kingSafetyTest() {
+    MoveGen.init();
+    Board board;
+    //    board = BoardUtil.createBoard("1k1r4/pp1b1R2/3q2pp/4p3/2B5/4Q3/PPP2B2/2K5 b - -");
+    //    System.out.println(Evaluation.getEvalInfo(board));
+//    board = BoardUtil.createBoard("1k1r4/pp1b1R2/2q3pp/4p3/2B5/4Q3/PPP2B2/2K5 b - -");
+//    System.out.println(Evaluation.getEvalInfo(board));
+    board = BoardUtil.createBoard("5rrk/6qp/2R2b2/1P1pp2Q/5p2/7R/P2B1P2/5K2 w - -");
+    System.out.println(Evaluation.getEvalInfo(board));
+  }
+
+  @Test
   public void test() {
+    MoveGen.init();
     for (String epd : getPos()) {
       evalPos(epd);
     }
@@ -28,9 +44,13 @@ public class EvalTest {
     }
 
     Board board = BoardUtil.createBoard(m.group(1));
-    int evaluate = Evaluation.evaluate(board);
+    int evaluate = Evaluation.evaluate(board) * (board.toMove == WHITE ? 1 : -1);
+    int stockfishEval = (int) (Double.parseDouble(m.group(4)) * 100);
 
-    System.out.println(String.format("eval %s real %s fen %s", evaluate, (int)(Double.parseDouble(m.group(4))*100), m.group(1)));
+    if (Math.abs(evaluate - stockfishEval) > 500) {
+      System.out.println(
+          String.format("eval %s real %s fen %s", evaluate, stockfishEval, m.group(1)));
+    }
   }
 
   private List<String> getPos() {

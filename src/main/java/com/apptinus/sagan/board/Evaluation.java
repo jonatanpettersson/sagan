@@ -21,8 +21,8 @@ import static com.apptinus.sagan.util.Bitops.unset;
 import com.apptinus.sagan.util.Bitops;
 
 public class Evaluation {
-  private static final int MIDDLE = 0;
-  private static final int ENDING = 1;
+  public static final int MIDDLE = 0;
+  public static final int ENDING = 1;
 
   public static final int[] PIECE_VALUE = {
     0, 900, 500, 300, 300, 100, 0, -900, -500, -300, -300, -100
@@ -192,13 +192,67 @@ public class Evaluation {
     psqtAndMaterial(WK, WHITE, evalDetails.kingPos, board, evalDetails);
     psqtAndMaterial(BK, BLACK, evalDetails.kingPos, board, evalDetails);
 
-    kingSafety(WHITE, evalDetails);
-    kingSafety(BLACK, evalDetails);
+    kingSafety(WHITE, board, evalDetails);
+    kingSafety(BLACK, board, evalDetails);
 
     return evalDetails;
   }
 
-  private static void kingSafety(int side, EvalDetails evalDetails) {
+  public static void kingSafety(int side, Board board, EvalDetails evalDetails) {
+    boolean white = side == WHITE;
+    int kingPiece = side == WHITE ? WK : BK;
+    long friendlyPawns = side == WHITE ? board.pieces[WP] : board.pieces[BP];
+    long enemyPawns = side == WHITE ? board.pieces[BP] : board.pieces[WP];
+    long friendlyPieces = side == WHITE ? board.wPieces : board.bPieces;
+    long enemyPieces = side == WHITE ? board.bPieces : board.wPieces;
+
+    int ksq = Bitops.next(board.pieces[kingPiece]);
+    long squaresAround = MoveGen.kingDeltas[ksq];
+    long squaresInFront = squaresAround & ~MoveGen.rankMask(ksq);
+    long squaresTwoInFront = white ? squaresInFront << 8 : squaresInFront >>> 8;
+    long emptyInFront = squaresInFront & ~friendlyPieces;
+    long piecesInFront = squaresInFront & friendlyPieces;
+    long piecesTwoInFront = squaresTwoInFront & friendlyPieces;
+
+    // Remove points for empty squares in front of king
+    evalDetails.kingSafety[side][MIDDLE] -= Bitops.population(emptyInFront) * 36;
+
+    // Give back some points if pieces two in front of king (and directly in front is empty)
+    evalDetails.kingSafety[side][MIDDLE] +=
+        Bitops.population(piecesTwoInFront & ~(white ? piecesInFront << 8 : piecesInFront >>> 8)) * 29;
+
+    int square;
+    while ((square = next(squaresInFront)) >= 0) {
+      if ((MoveGen.fileMask(square) & friendlyPawns & enemyPawns) == 0) {
+        // Open file next to king (will already have gotten minus from square in front, so give a bit more
+        evalDetails.kingSafety[side][MIDDLE] -= 36;
+      } else if ((MoveGen.fileMask(square) & enemyPawns) == 0) {
+        // Half-open file next to king (will already have gotten minus from square in front, so give a bit more
+        evalDetails.kingSafety[side][MIDDLE] -= 18;
+      }
+
+      // Remove the piece to move on to next
+      squaresInFront = unset(squaresInFront, square);
+    }
+
+    while ((square = next(squaresAround)) >= 0) {
+      long attackers = board.attackers(square, enemyPieces, 0xffffffffffffffffL);
+
+      evalDetails.kingSafety[side][MIDDLE] -= Bitops.population(attackers) * 20;
+      evalDetails.kingSafety[side][ENDING] -= Bitops.population(attackers) * 10;
+
+      // Remove the piece to move on to next
+      squaresAround = unset(squaresAround, square);
+    }
+
+    while ((square = next(squaresTwoInFront)) >= 0) {
+      long attackers = board.attackers(square, enemyPieces, 0xffffffffffffffffL);
+
+      evalDetails.kingSafety[side][MIDDLE] -= Bitops.population(attackers) * 10;
+
+      // Remove the piece to move on to next
+      squaresTwoInFront = unset(squaresTwoInFront, square);
+    }
 
   }
 
@@ -576,14 +630,70 @@ public class Evaluation {
 
     PSQT[BN] =
         new long[][] {
-          {-19, -18}, {-14, -12}, {-8, -7}, {-3, -2}, {-3, -2}, {-8, -7}, {-14, -12}, {-19, -18}, //
-          {-14, -12}, {-8, -7}, {-3, -2}, {4, 5}, {4, 5}, {-3, -2}, {-8, -7}, {-14, -12}, //
-          {-8, -7}, {-3, -2}, {15, 5}, {36, 16}, {36, 16}, {15, 5}, {-3, -2}, {-8, -7}, //
-          {-3, -2}, {4, 5}, {26, 16}, {31, 22}, {31, 22}, {26, 16}, {4, 5}, {-3, -2}, //
-          {-3, -2}, {4, 5}, {15, 16}, {21, 22}, {21, 22}, {15, 16}, {4, 5}, {-3, -2}, //
-          {-8, -7}, {-3, -2}, {4, 5}, {15, 16}, {15, 16}, {4, 5}, {-3, -2}, {-8, -7}, //
-          {-14, -12}, {-8, -7}, {-3, -2}, {4, 5}, {4, 5}, {-3, -2}, {-8, -7}, {-14, -12}, //
-          {-19, -18}, {-14, -12}, {-8, -7}, {-3, -2}, {-3, -2}, {-8, -7}, {-14, -12}, {-19, -18} //
+          {-19, -18},
+          {-14, -12},
+          {-8, -7},
+          {-3, -2},
+          {-3, -2},
+          {-8, -7},
+          {-14, -12},
+          {-19, -18}, //
+          {-14, -12},
+          {-8, -7},
+          {-3, -2},
+          {4, 5},
+          {4, 5},
+          {-3, -2},
+          {-8, -7},
+          {-14, -12}, //
+          {-8, -7},
+          {-3, -2},
+          {15, 5},
+          {36, 16},
+          {36, 16},
+          {15, 5},
+          {-3, -2},
+          {-8, -7}, //
+          {-3, -2},
+          {4, 5},
+          {26, 16},
+          {31, 22},
+          {31, 22},
+          {26, 16},
+          {4, 5},
+          {-3, -2}, //
+          {-3, -2},
+          {4, 5},
+          {15, 16},
+          {21, 22},
+          {21, 22},
+          {15, 16},
+          {4, 5},
+          {-3, -2}, //
+          {-8, -7},
+          {-3, -2},
+          {4, 5},
+          {15, 16},
+          {15, 16},
+          {4, 5},
+          {-3, -2},
+          {-8, -7}, //
+          {-14, -12},
+          {-8, -7},
+          {-3, -2},
+          {4, 5},
+          {4, 5},
+          {-3, -2},
+          {-8, -7},
+          {-14, -12}, //
+          {-19, -18},
+          {-14, -12},
+          {-8, -7},
+          {-3, -2},
+          {-3, -2},
+          {-8, -7},
+          {-14, -12},
+          {-19, -18} //
         };
 
     PSQT[WP] =
@@ -792,14 +902,70 @@ public class Evaluation {
 
     PSQT[BK] =
         new long[][] {
-          {-18, -20}, {-18, -15}, {-18, -9}, {-18, -4}, {-18, -4}, {-18, -9}, {-18, -15}, {-18, -20}, //
-          {-12, -15}, {-12, -9}, {-18, -4}, {-18, 7}, {-18, 7}, {-18, -4}, {-12, -9}, {-12, -15}, //
-          {-7, -9}, {-7, -4}, {-12, 7}, {-18, 23}, {-18, 23}, {-12, 7}, {-7, -4}, {-7, -9}, //
-          {3, -4}, {0, 7}, {-2, 23}, {-7, 28}, {-7, 28}, {-2, 23}, {0, 7}, {3, -4}, //
-          {8, -4}, {8, 7}, {3, 23}, {-2, 28}, {-2, 28}, {3, 23}, {8, 7}, {8, -4}, //
-          {11, -9}, {11, -4}, {11, 7}, {8, 23}, {8, 23}, {11, 7}, {11, -4}, {11, -9}, //
-          {16, -15}, {16, -9}, {14, -4}, {11, 7}, {11, 7}, {14, -4}, {16, -9}, {16, -15}, //
-          {16, -20}, {17, -15}, {16, -9}, {14, -4}, {14, -4}, {16, -9}, {17, -15}, {16, -20} //
+          {-18, -20},
+          {-18, -15},
+          {-18, -9},
+          {-18, -4},
+          {-18, -4},
+          {-18, -9},
+          {-18, -15},
+          {-18, -20}, //
+          {-12, -15},
+          {-12, -9},
+          {-18, -4},
+          {-18, 7},
+          {-18, 7},
+          {-18, -4},
+          {-12, -9},
+          {-12, -15}, //
+          {-7, -9},
+          {-7, -4},
+          {-12, 7},
+          {-18, 23},
+          {-18, 23},
+          {-12, 7},
+          {-7, -4},
+          {-7, -9}, //
+          {3, -4},
+          {0, 7},
+          {-2, 23},
+          {-7, 28},
+          {-7, 28},
+          {-2, 23},
+          {0, 7},
+          {3, -4}, //
+          {8, -4},
+          {8, 7},
+          {3, 23},
+          {-2, 28},
+          {-2, 28},
+          {3, 23},
+          {8, 7},
+          {8, -4}, //
+          {11, -9},
+          {11, -4},
+          {11, 7},
+          {8, 23},
+          {8, 23},
+          {11, 7},
+          {11, -4},
+          {11, -9}, //
+          {16, -15},
+          {16, -9},
+          {14, -4},
+          {11, 7},
+          {11, 7},
+          {14, -4},
+          {16, -9},
+          {16, -15}, //
+          {16, -20},
+          {17, -15},
+          {16, -9},
+          {14, -4},
+          {14, -4},
+          {16, -9},
+          {17, -15},
+          {16, -20} //
         };
   }
 }
